@@ -1,0 +1,72 @@
+{% extends 'nav.html' %}
+{% load static %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MealMate</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+</head>
+<body>
+    {% if inicio %}
+        <h1>{{ inicio }}</h1>
+    {% endif %}
+    <br>
+    <form method="post">
+        {% csrf_token %}
+        {{ busqueda.texto }}
+        <input type="submit" value="Buscar" class="btn btn-primary">
+    </form>
+    
+    <br><br>
+    {% if items %}
+        {% for item in items %}
+        {% if item.delivery or item.pickup %}
+            <a href="{% url 'presentacion_one' item.codigo %}">
+        {% elif not item.delivery and  item.pickup  %}
+            <a href="{% url 'presentacion_three' item.codigo %}">
+        {% elif not item.delivery and not item.pickup and item.reservaciones %}
+            <a href="{% url 'presentacion_two' item.codigo %}">
+        {% else %}
+            <a href="{% url 'presentacion' item.codigo %}">
+        {% endif %}
+
+
+          <div class="card mb-3" style="max-width: 540px;">
+            <div class="row g-0">
+              <div class="col-md-4">
+                <img src="..." class="img-fluid rounded-start" alt="...">
+              </div>
+              <div class="col-md-8">
+                <div class="card-body">
+                  <h5 class="card-title">{{ item.restaurante_nombre }}</h5>
+                  <p class="card-text"></p><a href="#" class="card-link">{{ item.ubicacion }}</a></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </a>
+        {% endfor %}
+
+        {% include "paginacion.html" %}
+        <strong>Error!</strong> {{ error }}
+    {% else %}
+    {% if error %}
+        <div
+          class="alert alert-danger"
+          role="alert"
+        >
+          <h4 class="alert-heading">Error</h4>
+          <p>{{ error }}</p>
+          <hr />
+        </div>
+        
+        {% endif %}
+    {% endif %}
+
+</body>
+</html>
+{% endblock %}

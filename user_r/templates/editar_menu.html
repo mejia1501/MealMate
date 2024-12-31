@@ -1,0 +1,36 @@
+{% extends 'nav.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">   
+    <title>{{ nombre }} Menu's</title>
+</head>
+<body>
+
+    <h1>Menu's {{nombre}}</h3>
+    {% if error %}
+    <div
+        class="alert alert-warning"
+        role="alert"
+    >
+        <strong>Error</strong> {{ error }}</div>
+    {% endif %}
+    <form method="POST" > 
+        {% csrf_token %}         
+        {{ form|crispy }}
+           
+        <button type="submit" >Guardar</button> 
+    </form>
+     <a name="add" id="1" class="btn btn-primary" href="{% url 'add_ingrediente' code %}">Agregar ingrediente</a>
+
+    <script>
+        $("#id_codigos").select2();
+    </script>
+
+</body>
+</html>
+{% endblock %}

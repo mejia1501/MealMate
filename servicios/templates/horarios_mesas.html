@@ -1,0 +1,222 @@
+{% extends 'nav.html' %}
+{% load custom_filters_servicios %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ Nombre }}</title>
+    <style>
+        .board {
+            margin-left: 12em;
+            margin-right: 12em;
+        }
+        /* Estilos para la ventana emergente */
+        .modal {
+            display: none; /* Oculto por defecto */
+            position: fixed; /* Fijo en la pantalla */
+            z-index: 1; /* Por encima de otros elementos */
+            left: 0;
+            top: 0;
+            width: 100%; /* Ancho completo */
+            height: 100%; /* Alto completo */
+            overflow: auto; /* Habilitar scroll si es necesario */
+            background-color: rgba(0, 0, 0, 0.5); /* Fondo oscuro */
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto; /* 15% desde la parte superior y centrado */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; /* Ancho de la ventana */
+            max-width: 500px; /* Ancho máximo */
+            border-radius: 8px; /* Bordes redondeados */
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ nombre }}</h1>
+
+    
+
+    <a href="{% url 'perfil-restaurante' %}"><button id="tab-1" name="tab" value="datos" >Datos</button></a>
+
+    <a href="{% url 'menu' %}"><button id="tab-2" name="tab" value="menu">Menú</button></a>
+    
+    <a href="{% url 'paypal' %}"><button id="tab-3" name="tab" value="pago">Metodos de pago</button></a>
+    <button id="tab-4" name="tab" value="servicios">Servicios</button>
+    <br>
+
+    <a href="{% url 'activate_d' %}"><button id="tab-5" name="tab" value="delivery">Delivery</button></a>
+    <a href="{% url 'activate_p' %}"><button id="tab-6" name="tab" value="pickup">Pickup</button></a>
+    <button id="tab-7" name="tab" value="reservacion">Reservaciones</button>
+
+    <br>
+    <a href="{% url 'mesas' %}">
+        <button id="tab-8" name="tab" value="mesas">Mesas</button>
+    </a>
+    
+    <button id="tab-9" name="tab" value="horario">Horarios</button>
+    <br>
+    <div class="board">
+    <h2>Reservaciones</h2>
+    {% if error %}
+    <div
+        class="alert alert-warning"
+        role="alert"
+    >
+        <strong>Alert Heading</strong> {{ error }}
+    </div>
+    {% endif %}
+    <form method="post" id="formulario">
+    {% csrf_token %}
+    {{ check }}
+    </form>
+    <br>
+    <h4>Horarios</h4>
+    <div class="table-responsive-sm">
+        <table class="table table-light" id="horariosTable">
+            <thead>
+                <tr>
+                    <th scope="col">Fecha</th>
+                    <th scope="col">Mesa</th>
+                    <th scope="col">Horas</th>
+                    <th scope="col">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fecha, reservas in horarios.items %}
+                    {% for reserva in reservas %}
+                    <tr>
+                        <td scope="row">
+                            {{ fecha }}
+                        </td>
+                        <td>
+                            {{ reserva.mesa|add_one }}
+                        </td>
+                        <td>
+                            {% for hora in reserva.horas %}
+                            <a href="{% url 'modificar_reserva' reserva.fecha_str reserva.mesa hora %}">
+                            <button title="Modificar">{{ hora }}</button>
+                            </a>
+                            {% endfor %}
+                        </td>
+                        <td>
+                            <form method="post">
+                                {% csrf_token %}
+                                <input value="{{ reserva.mesa }}" type="hidden" name="mesa">
+                                <input value="{{ fecha }}" type="hidden" name="fecha">
+                                <input type="hidden" name="check" value="{{ check }}">
+                                <button  type="button" class="btn btn-danger">
+                                    <input type="submit" value="Eliminar">
+                                </button>
+                            </form>
+                            
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+   
+<!-- Botón para abrir el modal -->
+<button id="openModalBtn">Añadir</button>
+
+<div id="myModal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeModal">&times;</span>
+        <div id="modalBody">Cargando contenido...</div>
+    </div>
+</div>
+</div>
+<!--       NO TOCAR EL SCRIPT X_X           -->
+<script>
+        document.getElementById("openModalBtn").onclick = function() {
+            // Cargar contenido del modal desde otra página
+            fetch("{% url 'horarios_nuevo' %}")
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById("modalBody").innerHTML = data;
+                    document.getElementById("myModal").style.display = "block";
+    
+                    // Agregar el evento de envío al formulario cargado
+                    const form = document.querySelector('#modalBody form');
+                    if (form) {
+                        form.onsubmit = function(event) {
+                            event.preventDefault(); // Evitar el envío predeterminado
+    
+                            // Obtener datos del formulario
+                            const formData = new FormData(form);
+    
+                            // Enviar datos usando fetch
+                            fetch("{% url 'horarios_nuevo' %}", {
+                                method: 'POST',
+                                body: formData,
+                                headers: {
+                                    'X-CSRFToken': '{{ csrf_token }}' // Asegúrate de incluir el token CSRF
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    // Redirigir a la página "horarios-mesas"
+                                    window.location.href = data.redirect_url; // Cambia esto si la URL es diferente
+                                } else {
+                                    // Manejar el error y mostrar un mensaje
+                                    console.error('Error:', data.error);
+                                    alert(data.error); // Muestra el error al usuario
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                            });
+                        };
+                    }
+                })
+                .catch(error => console.error('Error al cargar el contenido del modal:', error));
+        }
+    
+        document.getElementById("closeModal").onclick = function() {
+            document.getElementById("myModal").style.display = "none";
+        }
+    
+        window.onclick = function(event) {
+            if (event.target == document.getElementById("myModal")) {
+                document.getElementById("myModal").style.display = "none";
+            }
+        }
+    
+        // Función para enviar el formulario automáticamente
+        function enviarFormulario() {
+            document.getElementById('formulario').submit();
+        }
+    
+        // Obtener los campos de tiempo
+        const checkbox = document.querySelector('#formulario input[type="checkbox"]');
+    
+        if (checkbox) {
+            checkbox.addEventListener('change', enviarFormulario);
+        }
+</script>
+  
+</body>
+</html>
+
+{% endblock %}

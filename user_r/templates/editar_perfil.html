@@ -1,0 +1,29 @@
+{% extends 'nav.html' %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil</title>
+</head>
+<body>
+    <h1>{{ nombre }}</h1>
+    <!-- Formulario para los botones de navegación -->
+
+    <a href="{% url 'perfil-restaurante' %}"><button id="tab-1" name="tab" value="datos" >Datos</button></a>
+    <a href="{% url 'menu' %}"><button id="tab-2" name="tab" value="menu">Menú</button></a>
+   <a href="{% url 'paypal' %}"><button id="tab-3" name="tab" value="pago">Metodos de pago</button></a>
+   <a href="{% url 'activate_d' %}"><button id="tab-4" name="tab" value="servicios">Servicios</button></a>
+
+    <!-- Formulario para editar perfil -->
+    <form method="POST" action="{% url 'editar-perfil' %}"> 
+        {% csrf_token %} 
+        {{ form.as_p }} 
+        <button type="submit">Guardar</button> 
+    </form>
+</body>
+</html>
+
+{% endblock %}

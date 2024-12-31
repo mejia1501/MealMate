@@ -1,0 +1,59 @@
+{% extends 'nav.html' %}
+{% load custom_filters_user_r %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ nombre }}</title>
+</head>
+<body>
+    <h1>{{ nombre }}'s Menu</h1>
+
+      <!-- Formulario para los botones de navegación -->
+  
+      <a href="{% url 'perfil-restaurante' %}"><button id="tab-1" name="tab" value="datos" >Datos</button></a>
+         <a href="{% url 'menu' %}"><button id="tab-2" name="tab" value="menu">Menú</button></a>
+        <a href="{% url 'paypal' %}"><button id="tab-3" name="tab" value="pago">Metodos de pago</button></a>
+        <<a href="{% url 'activate_d' %}"><button id="tab-4" name="tab" value="servicios">Servicios</button></a>
+      
+
+    <a name="add" id="add" class="btn btn-primary" href="{% url 'crear_menu' %}" role="button">Añadir</a>
+    
+    {% if error %}
+        <p>{{ error }}</p>
+    {% endif %}
+    
+    <div class="table-responsive-md">
+        <table class="table table-striped-columns table-hover table-borderless table-primary align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Nro.</th>
+                    <th>Nombre</th>
+                    <th>Ingredientes</th>
+                    <th>Precio ($)</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody class="table-group-divider">
+                {% for menu in menus %}
+                <tr class="table-primary">
+                    <td scope="row">{{ menu.item }}</td>
+                    <td>{{ menu.comida }}</td>
+                    <td>
+                        {{ ingredients|get_item:menu.item }}
+                    </td>
+                    <td>{{ menu.precios }}</td>
+                    <td>
+                        <a name="edit" id="2" class="btn btn-primary" href="{% url 'editar_menu' menu.item %}" role="button">Editar</a>
+                        <a name="delete" id="3" class="btn btn-primary" href="{% url 'delete_dish' menu.item %}" role="button">Eliminar</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
+
+{% endblock %}   

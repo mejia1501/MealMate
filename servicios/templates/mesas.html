@@ -1,0 +1,139 @@
+{% extends 'nav.html' %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ Nombre }}</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #023047;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #8ECAE6;
+        }
+        .add-row {
+            margin-top: 20px;
+        }
+        .board{
+            margin-left: 12em;
+            margin-right: 12em;
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ nombre }}</h1>
+
+    
+
+    <a href="{% url 'perfil-restaurante' %}"><button id="tab-1" name="tab" value="datos" >Datos</button></a>
+
+    <a href="{% url 'menu' %}"><button id="tab-2" name="tab" value="menu">Menú</button></a>
+    
+    <a href="{% url 'paypal' %}"><button id="tab-3" name="tab" value="pago">Metodos de pago</button></a>
+    <button id="tab-4" name="tab" value="servicios">Servicios</button>
+    <br>
+
+    <a href="{% url 'activate_d' %}"><button id="tab-5" name="tab" value="delivery">Delivery</button></a>
+    <a href="{% url 'activate_p' %}"><button id="tab-6" name="tab" value="pickup">Pickup</button></a>
+    <button id="tab-7" name="tab" value="reservacion">Reservaciones</button>
+
+    <br>
+<button id="tab-8" name="tab" value="mesas">Mesas</button>
+
+        <a href="{% url 'horarios_mesas' %}">
+            <button id="tab-9" name="tab" value="horario">Horarios</button>
+        </a>
+    <br>
+    <div class="board">
+    <h2>Reservaciones</h2>
+    {% if error %}
+    <div
+        class="alert alert-warning"
+        role="alert"
+    >
+        <strong>Alert Heading</strong> {{ error }}
+    </div>
+    {% endif %}
+    
+    {% if mesas %}
+   
+    <form id="formularioMesas" method="post">
+        
+        {% csrf_token %}
+        {{ check }} 
+        <br>
+        
+        <h3>Mesas</h3>
+        <button type="button" class="add-row" onclick="agregarFila()">Agregar Fila</button>
+        <table id="Mesas">
+            <thead>
+                <tr>
+                    <th>Número de Mesa</th>
+                    <th>Puestos</th>
+                </tr>
+            </thead>
+            <tbody id="tbodyMesas">
+                {% for mesa in mesas %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>
+                            <input type="number" name="puestos" value="{{ mesa }}" step="1" min="0" max="40">
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="submit">Guardar</button>
+    </form>
+    {% endif %}   
+    
+    <script>
+        function agregarFila() {
+            // Obtener el cuerpo de la tabla
+            var tbody = document.getElementById("tbodyMesas");
+    
+            // Crear una nueva fila
+            var nuevaFila = document.createElement("tr");
+    
+            // Crear celdas para la nueva fila
+            var celdaNumero = document.createElement("td");
+            var celdaPuestos = document.createElement("td");
+    
+            // Asignar el número de mesa (incrementar el contador)
+            var numeroMesa = tbody.children.length + 1; // Número de mesa basado en la cantidad de filas existentes
+            celdaNumero.textContent = numeroMesa;
+    
+            // Crear el input para la segunda celda
+            var inputPuestos = document.createElement("input");
+            inputPuestos.type = "number";
+            inputPuestos.name = "puestos"; // Asegúrate de que el nombre sea el mismo para el envío
+            inputPuestos.value = 0; // Valor inicial
+            inputPuestos.step = "1";
+            inputPuestos.min = "0";
+            inputPuestos.max = "40";
+    
+            // Agregar el input a la celda de puestos
+            celdaPuestos.appendChild(inputPuestos);
+    
+            // Agregar las celdas a la nueva fila
+            nuevaFila.appendChild(celdaNumero);
+            nuevaFila.appendChild(celdaPuestos);
+    
+            // Agregar la nueva fila al cuerpo de la tabla
+            tbody.appendChild(nuevaFila);
+        }
+       </script>
+    </div>
+</body>
+</html>
+
+{% endblock %}

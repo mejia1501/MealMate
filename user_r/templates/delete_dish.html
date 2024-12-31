@@ -1,0 +1,23 @@
+{% extends 'nav.html' %}
+{% block content %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eliminar</title>
+</head>
+<body>
+    <h3>Eliminar</h3>
+    <form method="post">
+        {% csrf_token %}
+        <p>Estas seguro en eliminar el plato Nro."{{item}}" {{name}}</p>
+        <a href="{% url 'menu' %}">Regresar</a>
+        <input type="submit" value="Confirmar">
+    </form>
+
+</body>
+</html>
+
+{% endblock %}   

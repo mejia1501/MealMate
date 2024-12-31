@@ -1,0 +1,68 @@
+{% load custom_filters_principal %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MealMate - Pedido</title>
+</head>
+<body>
+    <h1>{{ restaurante }}</h1>
+    
+    <div class="container">
+        <h3>Pedido</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Comida</th>
+                    <th>Ingredientes</th>
+                    <th>Precio</th>
+                    <th>Cantidad</th>
+                    <th>Comentario</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <form method="POST">
+                    {% csrf_token %}
+                {% for item in pedidos_dict %}
+                    <tr>
+                        <td>{{ item.comida }}
+                            <input type="hidden" value="{{ item.item }}" name="item">
+                        </td>
+                        <td>
+                            {% for ingrediente in item.ingredientes|primeros_5 %}
+                                {{ ingrediente }}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td>{{ item.precio }}</td>
+                        <td>
+                            <input type="number" min="1" max="10" step="1" name="cantidad" value="{{ item.cantidad }}">
+                        </td>
+                        <td>
+                            <input type="text" maxlength="30" name="comentario" value="{{ item.comentario }}">
+                            
+                        </td>
+                        <td>{{ item.total }}</td>
+                        {% endfor %}
+                    </tr>
+                    <input type="submit" value="Guardar cambios">
+                </form>
+                
+            </tbody>
+        </table>
+    </div>
+    <a href="{% url 'pedidos2' id %}"><button type="button" class="btn btn-primary">Volver</button></a>
+    {% if error %}
+    <<div
+        class="alert alert-warning"
+        role="alert"
+    >
+        <h4 class="alert-heading">Error</h4>
+        <p>{{ error }}</p>
+        <hr />
+    </div>
+    
+    {% endif %}
+</body>
+</html>

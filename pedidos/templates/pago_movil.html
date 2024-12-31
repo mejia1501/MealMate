@@ -1,0 +1,58 @@
+{% extends 'nav.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MealMate - Pago</title>
+</head>
+<body>
+    {% if registro %}
+    <a href="{% url 'registro_datos' item %}">Volver</a>
+    {% else %}
+    <!-- True=pickup, False=delivery -->
+
+    {% if pedido %}
+    <a href="restaurantes/pedidos1/{{ item }}/">Volver</a>
+    {% else %}
+    <a href="restaurantes/pedidos1/{{ item }}/">Volver</a>
+    {% endif %}
+    {% endif %}
+
+
+    <h1>Pago movil</h1>
+    <br><br>
+    <h3>{{ nombre }}</h3>
+    {% if error %}
+    <<div
+        class="alert alert-danger"
+        role="alert"
+    >
+        <strong>Error</strong> {{ error }}
+    </div>
+    {% endif %}
+
+    {% if pago_restaurante %}
+    <h3>Datos pago movil del restaurante</h3>
+    <ul class="list-group list-group-flush">
+        <li class="list-group-item">Banco {{ pago_restaurante.banco }}</li>
+        <li class="list-group-item">Telefono {{ pago_restaurante.telefono_pm }}</li>
+        <li class="list-group-item">R.I.F. {{ rif }}</li>
+        <li class="list-group-item">
+            <strong>MONTO A PAGAR:</strong>
+            ${{ total }}
+        </li>
+      </ul>
+      {% endif %}
+
+      {% if form %}
+      <form method="post">
+        {% csrf_token %}
+        {{ form }}
+        <input type="submit" value="Verificar">
+      </form>
+        {% endif %}
+</body>
+</html>
+{% endblock %}

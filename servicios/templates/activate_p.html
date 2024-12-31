@@ -1,0 +1,59 @@
+{% extends 'nav.html' %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ Nombre }}</title>
+    
+</head>
+<body>
+    <h1>{{ nombre }}</h1>
+
+    <a href="{% url 'perfil-restaurante' %}"><button id="tab-1" name="tab" value="datos" >Datos</button></a>
+
+    <a href="{% url 'menu' %}"><button id="tab-2" name="tab" value="menu">Menú</button></a>
+    
+    <a href="{% url 'paypal' %}"><button id="tab-3" name="tab" value="pago">Metodos de pago</button></a>
+    <button id="tab-4" name="tab" value="servicios">Servicios</button>
+    <br>
+
+    <a href="{% url 'activate_d' %}"><button id="tab-5" name="tab" value="delivery">Delivery</button></a>
+    <button id="tab-6" name="tab" value="pickup">Pickup</button>
+    <a href="{% url 'activate_r' %}"><button id="tab-7" name="tab" value="reservacion">Reservaciones</button></a>
+
+    <br>
+
+    <h3>Pickup</h3>
+    {% if error %}
+    <<div
+        class="alert alert-warning"
+        role="alert"
+    >
+        <strong>Alert Heading</strong> {{ eror }}
+    </div>
+    {% endif %}
+   <!-- Formulario para activar el pickup -->
+   <form id="formulario" method="POST"> 
+    {% csrf_token %} 
+    {{ form }} 
+</form>
+
+    <script>
+        // Función para enviar el formulario automáticamente
+        function enviarFormulario() {
+            document.getElementById('formulario').submit();
+        }
+
+        // Obtener el checkbox
+        const checkbox = document.querySelector('#formulario input[type="checkbox"]');
+
+        // Añadir un evento de cambio al checkbox
+        checkbox.addEventListener('change', enviarFormulario);
+    </script>
+</body>
+</html>
+
+{% endblock %}

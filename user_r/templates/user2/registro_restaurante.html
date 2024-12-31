@@ -1,0 +1,37 @@
+{% extends 'nav.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro</title>
+  
+    <script>
+        function redirigir(event, tipo) {
+            event.preventDefault();
+            if (tipo === 'cliente') {
+                window.location.href = "{% url 'registro_cliente' %}";
+            }
+        }
+    </script>
+</head>
+<body>
+    
+    <h1>Registro</h1>
+    <form method="post">
+        <button id="tab-1" checked name="tab" value="cliente" onclick="redirigir(event, 'cliente')">Cliente</button>
+        <button id="tab-2" name="tab" value="restaurante" onclick="redirigir(event, 'restaurante')">Restaurante</button>
+    </form>
+
+    <div id="restaurante-form" class="form-container">
+        <form method="POST">
+            {{ form }}
+            {%csrf_token%}
+            {{ error }}
+            <br><button>Registrarse</button>
+        </form>
+    </div>
+</body>
+</html>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'nav.html' %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ nombre }}</title>
+</head>
+<body>
+    
+    <h1>{{ nombre }}</h1>
+    <!-- Formulario para los botones de navegación -->
+    
+        <button id="tab-1" name="tab" value="datos" >Datos</button>
+        <a href="{% url 'menu' %}"><button id="tab-2" name="tab" value="menu">Menú</button></a>
+    <a href="{% url 'paypal' %}"><button id="tab-3" name="tab" value="pago">Metodos de pago</button></a>
+    <a href="{% url 'activate_d' %}"><button id="tab-4" name="tab" value="servicios">Servicios</button></a>
+   
+    {{form.as_p}}
+    <a
+        name="Modificar"
+        id=""
+        class="btn btn-primary"
+        href="{% url 'editar-perfil' %}"
+        role="button"
+         >Modificar
+    </a> 
+
+</body>
+</html>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends 'nav.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MealMate - Pago</title>
+</head>
+<body>
+    <!-- True=pickup, False=delivery -->
+    {% if pedido %}
+    <a href="{% url 'pedidos2' item %}">Volver</a>
+    {% else %}
+    <a href="{% url 'pedidos' item %}">Volver</a>
+    {% endif %}
+    <h1>Datos del cliente</h1>
+    <br><br>
+    <h3>{{ nombre }}'s</h3>
+    {% if error %}
+    <<div
+        class="alert alert-danger"
+        role="alert"
+    >
+        <strong>Error</strong> {{ error }}
+    </div>
+    {% endif %}
+    <h5>Registre sus datos para procesar el pedido</h5>
+    <form method="post">
+        {% csrf_token %}
+        {{ form }}
+        {% if ubicacion %}
+        <p><strong>Ubicacion de entrega</strong></p>
+        <a href="{% url 'ubicacion' item %}"><p>{{ ubicacion }}</p></a>
+        {% endif %}
+        <br>
+        <input type="submit" value="Continuar">
+    </form>
+
+</body>
+</html>
+{% endblock %}

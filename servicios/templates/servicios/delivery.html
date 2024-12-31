@@ -1,0 +1,121 @@
+{% extends 'nav.html' %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ Nombre }}</title>
+    
+</head>
+<body>
+    <h1>{{ nombre }}</h1>
+
+    <a href="{% url 'perfil-restaurante' %}"><button id="tab-1" name="tab" value="datos" >Datos</button></a>
+
+    <a href="{% url 'menu' %}"><button id="tab-2" name="tab" value="menu">Menú</button></a>
+    
+    <a href="{% url 'paypal' %}"><button id="tab-3" name="tab" value="pago">Metodos de pago</button></a>
+    <button id="tab-4" name="tab" value="servicios">Servicios</button>
+    <br>
+
+    <button id="tab-5" name="tab" value="delivery">Delivery</button>
+    <a href="{% url 'activate_p' %}"><button id="tab-6" name="tab" value="pickup">Pickup</button></a>
+    <a href="{% url 'activate_r' %}"><button id="tab-7" name="tab" value="reservacion">Reservaciones</button></a>
+
+    <br>
+    <h3>Delivery</h3>
+    {% if error %}
+    <<div
+        class="alert alert-warning"
+        role="alert"
+    >
+        <strong>Alert Heading</strong> {{ error }}
+    </div>
+    {% endif %}
+    
+   <!-- Formulario para activar el delivery -->
+<form id="formulario" method="POST"> 
+    {% csrf_token %} 
+    {{ check }} 
+    <div>
+        Inicio
+        <input type="time" name="inicio" value="{{ inicio }}" id="id_inicio">
+        Cierre
+        <input type="time" name="cierre" value="{{ cierre }}" id="id_cierre">
+    </div>
+</form>
+
+<!-- Tabla de pedidos -->
+<div class="table-responsive-lg">
+    <table class="table table-striped-columns table-hover table-borderless table-primary align-middle">
+        <thead class="table-light">
+            <caption>Pedidos</caption>
+            <tr>
+                <th>Fecha</th>
+                <th>Nombre del cliente</th>
+                <th>Ubicacion</th>
+                <th>Estatus</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        {% for i in pedidos %}
+        <tbody class="table-group-divider">
+            <tr class="table-primary">
+                <td scope="row">{{ i.fecha }}</td>
+                <td>{{ i.nombre }}</td>
+                <td>{{ i.ubicacion }}</td>
+                <td>
+                    <form method="post" class="update-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="nro" value="{{ i.nro }}">
+                        <select name="status">
+                            <option value="True" {% if i.status %}selected{% endif %}>Entregado</option>
+                            <option value="False" {% if not i.status %}selected{% endif %}>Sin entregar</option>
+                        </select>
+                </td>
+                <td>
+                    <button type="submit">Actualizar</button>
+                    </form>
+                    <a href="{% url 'detail_delivery' i.nro %}">
+                        <button type="button" class="btn btn-primary">Ver detalles</button>
+                    </a>
+                </td>
+            </tr>
+        </tbody>
+        {% endfor %}
+    </table>
+</div>
+
+<script>
+    // Función para enviar el formulario de delivery automáticamente
+    function enviarFormulario() {
+        document.getElementById('formulario').submit();
+    }
+
+    // Obtener los campos de tiempo
+    const startTimeInput = document.querySelector('#formulario input[id="id_inicio"]');
+    const endTimeInput = document.querySelector('#formulario input[id="id_cierre"]');
+    const checkbox = document.querySelector('#formulario input[type="checkbox"]');
+
+    // Añadir un evento de cambio a cada campo de tiempo
+    startTimeInput.addEventListener('change', enviarFormulario);
+    endTimeInput.addEventListener('change', enviarFormulario);
+    if (checkbox) {
+        checkbox.addEventListener('change', enviarFormulario);
+    }
+
+    // Evitar el envío del formulario de delivery al enviar el formulario de actualización
+    const updateForms = document.querySelectorAll('.update-form');
+    updateForms.forEach(form => {
+        form.addEventListener('submit', function(event) {
+            event.preventDefault(); // Evita el envío automático del primer formulario
+            this.submit(); // Envía solo el formulario actual
+        });
+    });
+</script>
+</body>
+</html>
+
+{% endblock %}

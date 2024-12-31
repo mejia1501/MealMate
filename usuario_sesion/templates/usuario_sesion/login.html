@@ -1,0 +1,23 @@
+{% extends 'nav.html' %}
+{% block content %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>Login</title>   
+</head>
+<body>
+    <h1>Iniciar sesion</h1>
+    
+    <form  method="POST">
+        {{error}}
+        {{form}}
+        {% csrf_token %}
+        <button>Acceder</button>
+    </form>
+    <a href="{% url 'registro_cliente' %}"><b>Aun no tienes una cuenta?</b></a>
+</body>
+</html>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends 'nav.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ nombre }}</title>
+
+</head>
+<body>
+    <h1>{{ nombre }}'s Menu</h1>
+    {% if error %}
+        <p>{{ error }}</p>
+    {% endif %}
+       
+<!-- Formulario para los botones de navegación -->
+
+    <a href="{% url 'perfil-restaurante' %}"><button id="tab-1" name="tab" value="datos" >Datos</button></a>
+    <a href="{% url 'menu' %}"><button id="tab-2" name="tab" value="menu">Menú</button></a>
+    <button id="tab-3" name="tab" value="pago" disabled>Metodos de pago</button>
+    <a href="{% url 'activate_d' %}"><button id="tab-4" name="tab" value="servicios">Servicios</button></a>
+    <br><br>
+        
+            <button disabled type="button" id="tab-4" name="tab" value="nacional">Pago Nacional</button>
+        
+        <a href="{% url 'paypal' %}"><button  id="tab-5" name="tab" value="paypal">Paypal</button></a>
+        <a href="{% url 'zelle' %}">
+            <button type="button" id="tab-6" name="tab" value="zelle">Zelle</button>
+        </a>
+
+    <div class="container mt-5">
+        <h1>Pago Nacional</h1>
+        <form method="post">
+            {% csrf_token %}
+                <div class="form-group">
+                    {{ form.as_p }}
+                </div>
+            <button type="submit" class="btn btn-primary">Guardar</button>
+        </form>
+        {% if error %}
+            <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+    </div>
+
+
+</body>
+</html>
+
+{% endblock %}   
