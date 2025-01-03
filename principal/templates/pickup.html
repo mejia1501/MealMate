@@ -24,7 +24,7 @@
                 <a href="{% url 'presentacion_one' id %}"><button type="button" class="btn btn-outline-primary">Delivery</button></a>
             {% endif %}
             {% if pickup %}
-                <button type="button" class="btn btn-outline-primary">Pickup</button>
+                <button disabled type="button" class="btn btn-outline-primary">Pickup</button>
             {% endif %}
             {% if reservaciones %}
                 <a href="{% url 'presentacion_two' id %}"><button type="button" class="btn btn-outline-primary">Reservaciones</button></a>

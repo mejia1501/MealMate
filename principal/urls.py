@@ -12,11 +12,13 @@ urlpatterns=[
     path('restaurantes/pedidos1/<str:item>/',views.PedidosView,name='pedidos'),
     path('restaurantes/modificar_pedido/<str:id>/<str:item>/',views.ModificarPedido,name='modificar_pedido'),
     #pickup
-    path('restaurantes/agregar_pedido/<int:id>/<str:item>/',views.Agregar_Pedido_View2,name='agregar_pedido2'),
+    path('restaurantes/agregar_pedido2/<int:id>/<str:item>/',views.Agregar_Pedido_View2,name='agregar_pedido2'),
     path('restaurantes/pedidos2/<str:item>/',views.PedidosView2,name='pedidos2'),
-    path('restaurantes/modificar_pedido/<str:id>/<str:item>/',views.ModificarPedido2,name='modificar_pedido2'),
+    path('restaurantes/modificar_pedido2/<str:id>/<str:item>/',views.ModificarPedido2,name='modificar_pedido2'),
+
     path('restaurantes/ubicacion/<str:id>/',views.UbicacionView,name='ubicacion'),
+
     path('user/',include('usuario_sesion.urls')),
-    #path('restaurante/', include('user_r.urls')),
+    path('restaurante/', include('user_r.urls')),
     path('pedido/', include('pedidos.urls')),
 ]

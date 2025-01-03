@@ -22,10 +22,7 @@ class IniciarSesion(forms.Form):
 
 class CreateNewCliente(forms.Form):
     
-    nombre = forms.CharField(label='Nombre',max_length=20,widget=forms.PasswordInput(attrs={'class': 'form-control', 
-    'style': 'border: 1px solid #092629; background-color:  #004d3f; color: #092629;' , 
-    'placeholder': 'Ingresa tu contraseña'
-    }))
+    nombre = forms.CharField(label='Nombre',max_length=20)
     password1 = forms.CharField(label='Contraseña',max_length=18)
     password2 = forms.CharField(label='Repita la contraseña',max_length=18)
     cedula = forms.CharField(label="Cedula",max_length=8)

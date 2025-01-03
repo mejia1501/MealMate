@@ -7,7 +7,14 @@
 </head>
 <body>
 
-    <a href="{% url 'home' %}">x</a>
+    {% if pickup %}
+        <a href="{% url 'presentacion_three' id %}"><button type="button" class="btn btn-outline-primary">x</button></a>
+    {% elif reservaciones %}
+        <a href="{% url 'presentacion_two' id %}"><button type="button" class="btn btn-outline-primary">x</button></a>
+    {% else %}
+        <a href="{% url 'home' %}">x</a>    
+    {% endif %}
+
     <h3>Ubicacion de entrega del pedido</h3>
     <form method="post">
         {% csrf_token %}

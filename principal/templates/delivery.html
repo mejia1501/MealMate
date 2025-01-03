@@ -21,7 +21,7 @@
         
         <div class="btn-group mb-4" role="group" aria-label="Basic outlined example">
             {% if delivery %}
-                <button type="button" class="btn btn-outline-primary">Delivery</button>
+                <button disabled type="button" class="btn btn-outline-primary">Delivery</button>
             {% endif %}
             {% if pickup %}
                 <a href="{% url 'presentacion_three' id %}"><button type="button" class="btn btn-outline-primary">Pickup</button></a>

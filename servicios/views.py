@@ -7,6 +7,9 @@ from pedidos.models import Pedido_Delivery,Pedido_Pickup
 from datetime import date,datetime
 from pedidos.models import Pedido_Delivery
 from django.http import JsonResponse
+from django.utils import timezone
+import datetime
+
 # Create your views here.
 
 def ActivateReserView(request):
@@ -30,7 +33,7 @@ def ActivateReserView(request):
                 return redirect('mesas')
             form = CheckReserForm(instance=r_instance)
 
-            return render(request, 'activate_r.html', {'form': form})
+            return render(request, 'activate_r.html', {'form': form, 'nombre': restaurante.nombre,})
 
     elif mail and request.method == 'POST':
         restaurante=Restaurante.objects.filter(email=mail).first()
@@ -80,7 +83,7 @@ def ActivateDelivView(request):
                 return redirect('delivery')
             form = CheckDelivForm(instance=d_instance)
 
-            return render(request, 'activate_d.html', {'form': form})
+            return render(request, 'activate_d.html', {'form': form, 'nombre': restaurante.nombre,})
 
     elif mail and request.method == 'POST':
         restaurante=Restaurante.objects.filter(email=mail).first()
@@ -130,7 +133,7 @@ def ActivatePickView(request):
                 return redirect('pickup')
             form = CheckPickForm(instance=p_instance)
 
-            return render(request, 'activate_p.html', {'form': form})
+            return render(request,'activate_p.html', {'form': form, 'nombre': restaurante.nombre,})
 
     elif mail and request.method == 'POST':
         restaurante=Restaurante.objects.filter(email=mail).first()
@@ -153,7 +156,7 @@ def ActivatePickView(request):
                             'error': 'Error actualizando datos'
                     })
             else:
-                return render(request, 'activate_py .html', {
+                return render(request, 'activate_p.html', {
                         'form': form,
                         'nombre': restaurante.nombre,
                         'error': 'Por favor, corrige los errores en el formulario.'
@@ -179,7 +182,16 @@ def DeliveryView(request):
     delivery = Pickup_Delivery.objects.filter(restaurante=restaurante.id).first()
     if delivery and delivery.active_delivery:
         if request.method == 'GET':
-            pedidos=Pedido_Delivery.objects.filter(id_nro=restaurante.id).all()
+            # Obtener los pedidos del restaurante
+            pedidos = Pedido_Delivery.objects.filter(id_nro=restaurante.id).all()
+
+            # Obtener la fecha actual
+            fecha_actual = timezone.now()
+
+            for pedido in pedidos:
+                # Verificar si la fecha del pedido es más antigua que un día
+                if pedido.fecha < fecha_actual - datetime.timedelta(days=1):
+                    pedido.delete()  # Eliminar el pedido de la base de datos
             check = CheckDelivForm(initial={
                 'active_delivery': delivery.active_delivery,
             })
@@ -193,6 +205,7 @@ def DeliveryView(request):
                 'inicio':inicio,
                 'cierre': cierre,
                 'pedidos':pedidos,
+                'nombre': restaurante.nombre,
             })
 
         elif request.method == 'POST':
@@ -262,18 +275,30 @@ def PickupView(request):
     
     if pickup and pickup.active_pickup:
         if request.method == 'GET':
+            # Obtener los pedidos del restaurante
+            pedidos = Pedido_Pickup.objects.filter(id_nro=restaurante.id).all()
+
+            # Obtener la fecha actual
+            fecha_actual = timezone.now()
+
+            for pedido in pedidos:
+                # Verificar si la fecha del pedido es más antigua que un día
+                if pedido.fecha < fecha_actual - datetime.timedelta(days=1):
+                    pedido.delete()  # Eliminar el pedido de la base de datos
             check = CheckPickForm(initial={
                 'active_pickup': pickup.active_pickup,
             })
 
             # Formatear los tiempos para el input de tipo time
             inicio = pickup.p_start_time.strftime('%H:%M') if pickup.p_start_time else ''
-            cierre = pickup.d_end_time.strftime('%H:%M') if pickup.p_end_time else ''
+            cierre = pickup.p_end_time.strftime('%H:%M') if pickup.p_end_time else ''
 
-            return render(request, 'pickup.html', {
+            return render(request, 'pickup_servicios.html', {
                 'check': check,
                 'inicio':inicio,
                 'cierre': cierre,
+                'pedidos':pedidos,
+                'nombre': restaurante.nombre,
             })
 
         elif request.method == 'POST':
@@ -296,7 +321,7 @@ def PickupView(request):
 
             except Exception as e:
                 # Si hay un error, renderiza la plantilla con los formularios
-                return render(request, 'pickup.html', {
+                return render(request, 'pickup_servicios.html', {
                     'check': check,  # Muestra el formulario check con los datos actuales
                     'error': f'Error al guardar los cambios: {str(e)}',
                 })
@@ -304,7 +329,7 @@ def PickupView(request):
         return redirect('activate_p')
 
     # Este render puede ser innecesario si ya has manejado todos los casos
-    return render(request, 'pickup.html', {
+    return render(request, 'pickup_servicios.html', {
         'check': CheckPickForm(initial={'active_pickup':pickup.active_pickup}),
     })
 
@@ -340,7 +365,8 @@ def MesasView(request):
 
             return render(request, 'mesas.html', {
                 'check': check,
-                'mesas':mesas
+                'mesas':mesas,
+                'nombre': restaurante.nombre,
             })
 
         elif request.method == 'POST':
@@ -415,6 +441,7 @@ def HorariosMesasViews(request):
             return render(request, 'horarios_mesas.html', {
                 'check': check,
                 'horarios': horarios,
+                'nombre': restaurante.nombre,
             })
 
         elif request.method == 'POST':

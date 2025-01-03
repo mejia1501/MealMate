@@ -17,11 +17,13 @@
     {% elif not pedidos %}
         <a href="restaurantes/pedidos1/{{ item }}/">Volver</a>
     {% endif %}
-<br>
+
     <ul class="nav nav-underline">
+        {% if pago_movil %}
         <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="#">Pago Movil</a>
+          <a class="nav-link" href="{% url 'pago_movil' item %}">Pago movil</a>
         </li>
+        {% endif %}
         {% if efectivo %}
         <li class="nav-item">
           <a class="nav-link" href="#">Efectivo</a>
@@ -29,17 +31,17 @@
         {% endif %}
         {% if zelle %}
         <li class="nav-item">
-          <a class="nav-link" href="{% url 'zelle_pago' item %}">Zelle</a>
-        </li>
+            <a class="nav-link active" aria-current="page" href="#">Zelle</a>
+          </li>
         {% endif %}
         {% if paypal %}
         <li class="nav-item">
-          <a class="nav-link" href="#">Paypak</a>
+          <a class="nav-link" href="#">Paypal</a>
         </li>
         {% endif %}
       </ul>
-<br>
-    <h1>Pago movil</h1>
+
+    <h1>Zelle</h1>
     <br><br>
     <h3>{{ nombre }}</h3>
     {% if error %}
@@ -51,26 +53,26 @@
     </div>
     {% endif %}
 
-    {% if pago_restaurante %}
-    <h3>Datos pago movil del restaurante</h3>
+    {% if zelle %}
+    <h3>Datos zelle del restaurante</h3>
     <ul class="list-group list-group-flush">
-        <li class="list-group-item">{{ pago_restaurante.banco }}</li>
-        <li class="list-group-item">Telefono {{ pago_restaurante.telefono_pm }}</li>
-        <li class="list-group-item">R.I.F. {{ rif }}</li>
+        <li class="list-group-item"><strong>Email</strong> {{ pago_restaurante.mail_z }}</li>
+        <li class="list-group-item"><strong>Telefono</strong>  {{ pago_restaurante.phone_z }}</li>
         <li class="list-group-item">
             <strong>MONTO A PAGAR:</strong>
             ${{ total }}
         </li>
       </ul>
+    
       {% endif %}
 <br>
       {% if form %}
       <form method="post">
         {% csrf_token %}
         {{ form }}
-        <input type="time" name="hora" value="{{ hora }}" id="hora">
+        <input type="date" id="fecha" name="fecha">
         <br><br>
-        <input type="submit" value="Verificar">
+        <input class="btn btn-primary" type="submit" value="Verificar">
       </form>
         {% endif %}
 </body>

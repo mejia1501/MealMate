@@ -1,5 +1,6 @@
 from django import forms
 from django.forms import ModelForm
+import datetime
 import csv
 
 #Lee los bancos registrados en el archivo csv y devuelve una lista con ellos
@@ -66,23 +67,8 @@ class PagoMovilForm(forms.Form):
         label="Nombre",
         required=True,
     )
-    hora=forms.TimeField(
-        widget=forms.TimeInput(),
-        required=True,
-        label="Hora del pago",
-    )
 
 class PagoZelleForm(forms.Form):
-    ref=forms.IntegerField(
-        label="Número de Referencia de la Transacción",
-        widget=forms.TextInput,
-        required=True,   
-    )
-    hora=forms.TimeField(
-        widget=forms.TimeInput(),
-        required=True,
-        label="<strong>Hora del pago</strong><br>",
-    )
     nombre=forms.CharField(
         max_length=40,
         widget=forms.TextInput(),
@@ -99,6 +85,11 @@ class PagoZelleForm(forms.Form):
         label="Número de Teléfono Asociado a Zelle",
         widget=forms.TextInput(attrs={'maxlength': 11}),
         required=True,
+    )
+    ref=forms.IntegerField(
+        label="Referencia de la transacción",
+        widget=forms.TextInput,
+        required=True,   
     )
 
 class PagoPaypalForm(forms.Form):

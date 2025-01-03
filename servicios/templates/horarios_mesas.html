@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ Nombre }}</title>
+    <title>{{ nombre }} Reservaciones</title>
     <style>
         .board {
             margin-left: 12em;
@@ -60,19 +60,19 @@
     <a href="{% url 'menu' %}"><button id="tab-2" name="tab" value="menu">Menú</button></a>
     
     <a href="{% url 'paypal' %}"><button id="tab-3" name="tab" value="pago">Metodos de pago</button></a>
-    <button id="tab-4" name="tab" value="servicios">Servicios</button>
+    <button id="tab-4" name="tab" disabled value="servicios">Servicios</button>
     <br>
 
     <a href="{% url 'activate_d' %}"><button id="tab-5" name="tab" value="delivery">Delivery</button></a>
     <a href="{% url 'activate_p' %}"><button id="tab-6" name="tab" value="pickup">Pickup</button></a>
-    <button id="tab-7" name="tab" value="reservacion">Reservaciones</button>
+    <button id="tab-7" disabled name="tab" value="reservacion">Reservaciones</button>
 
     <br>
     <a href="{% url 'mesas' %}">
         <button id="tab-8" name="tab" value="mesas">Mesas</button>
     </a>
     
-    <button id="tab-9" name="tab" value="horario">Horarios</button>
+    <button id="tab-9" name="tab" disabled value="horario">Horarios</button>
     <br>
     <div class="board">
     <h2>Reservaciones</h2>

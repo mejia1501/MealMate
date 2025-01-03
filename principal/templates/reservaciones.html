@@ -26,7 +26,7 @@
                 <a href="{% url 'presentacion_three' restaurante.id %}"><button type="button" class="btn btn-outline-primary">Pickup</button></a>
             {% endif %}
             {% if reservaciones %}
-                <a href="{% url 'presentacion_two' restaurante.id %}"><button type="button" class="btn btn-outline-primary">Reservaciones</button></a>
+                <button disabled type="button" class="btn btn-outline-primary">Reservaciones</button>
             {% endif %}
         </div>
         <h3>Menú</h3>

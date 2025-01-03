@@ -24,13 +24,13 @@
     <br><br>
     {% if items %}
         {% for item in items %}
-        {% if item.delivery or item.pickup %}
-            <a href="{% url 'presentacion_one' item.codigo %}">
-        {% elif not item.delivery and  item.pickup  %}
+        {% if  item.pickup %}
             <a href="{% url 'presentacion_three' item.codigo %}">
+        {% elif item.delivery and  not item.pickup  and item.reservaciones %}
+            <a href="{% url 'presentacion_two' item.codigo %}">
         {% elif not item.delivery and not item.pickup and item.reservaciones %}
             <a href="{% url 'presentacion_two' item.codigo %}">
-        {% else %}
+        {% elif not item.delivery and not item.pickup and not item.reservaciones %}
             <a href="{% url 'presentacion' item.codigo %}">
         {% endif %}
 

@@ -25,6 +25,7 @@ urlpatterns = [
     path('restaurante/', include('user_r.urls')),
     path('servicios/', include('servicios.urls')),
     path('', include('principal.urls')),
+    path('pedidos/', include('pedidos.urls')),
     path('perfil-cliente/', usuario_sesion_views.cuenta, name="perfil-cliente"),  # Perfil cliente
     path('perfil-restaurante/', user_r_views.cuenta, name="perfil-restaurante"),  # Perfil restaurante
     path('logout/', usuario_sesion_views.logout, name="logout"),

@@ -386,6 +386,8 @@ def PedidosView(request,item):
         })
 
     if request.method == "GET":
+        #False=delivery,True=pickup
+        request.session['type']=False
       # Recuperar las variables de sesión
         elegidos = request.session.get('elegidos', 'No disponible')
         cantidad = request.session.get('cantidad', 'No disponible')
@@ -653,7 +655,7 @@ def Agregar_Pedido_View2(request, id, item):
 def PedidosView2(request,item):
     
     restaurante = Restaurante.objects.filter(id=item).first()
-
+    request.session['type']=True
     if not restaurante:
         return render(request, 'pedidos2.html', {
             'error': 'Restaurante no encontrado',
@@ -827,10 +829,20 @@ def ModificarPedido2(request, id, item):
             })    
 
 def UbicacionView(request, id):
+    restaurante = Restaurante.objects.filter(id=id).first()
     if request.method == "GET":
         ubicacion = request.session.get("ubicacion", "")  # Valor por defecto vacío si no existe
         form = UbicacionForm(initial={'ubicacion': ubicacion})  # Establecer el valor inicial
-        return render(request, 'ubicacion.html', {'form': form})
+        reservacion = Reservaciones_config.objects.filter(restaurante=restaurante.id).first()
+        pandd = Pickup_Delivery.objects.filter(restaurante=restaurante.id).first()
+
+        return render(request, 'ubicacion.html', {
+            'form': form,
+            'delivery': pandd.active_delivery if pandd else False,
+            'pickup': pandd.active_pickup if pandd else False,
+            'reservaciones': reservacion.active if reservacion else False,
+            'id':id,
+            })
     
     elif request.method == "POST":
         form = UbicacionForm(request.POST)
@@ -839,12 +851,10 @@ def UbicacionView(request, id):
             try:
                 request.session["ubicacion"] = form.cleaned_data['ubicacion']  # Acceder a cleaned_data
 
-                restaurante = Restaurante.objects.filter(id=id).first()
                 reservacion = Reservaciones_config.objects.filter(restaurante=restaurante.id).first()
                 p_d = Pickup_Delivery.objects.filter(restaurante=restaurante.id).first()
                 
                 if request.session.get('registro'):
-                    total = request.session.get('total')
                     url = reverse('registro_datos', kwargs={'id': id})
                     return redirect(url)
                 

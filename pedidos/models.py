@@ -6,7 +6,7 @@ from user_r.models import Restaurante
 class Pedido_Delivery(models.Model):
     id_nro=models.ForeignKey(Restaurante,on_delete=models.CASCADE)
     nro_items=models.CharField(max_length=200)
-    fecha=models.DateField(default=timezone.now)
+    fecha=models.DateTimeField(default=timezone.now)
     notas=models.CharField(max_length=500)
     cantidades=models.CharField(max_length=200)
     nombre = models.CharField(max_length=20)
@@ -25,7 +25,7 @@ class Pedido_Pickup(models.Model):
     #id del restaurante
     id_nro=models.ForeignKey(Restaurante,on_delete=models.CASCADE)
     nro_items=models.CharField(max_length=200)
-    fecha=models.DateField(default=timezone.now)
+    fecha=models.DateTimeField(default=timezone.now)
     notas=models.CharField(max_length=500)
     cantidades=models.CharField(max_length=200)
     nombre = models.CharField(max_length=40)

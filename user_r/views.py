@@ -179,19 +179,23 @@ def ModificarMenu(request, item):
         return render(request, 'menu.html', {'error': 'Restaurante no encontrado.'})
 #envio de datos a la pagian editar menu con la estructura del form Menu y con informacion inicial proveniente del modelo Menu
     if request.method == "GET":
-        comida = Menu.objects.filter(item=item).first()
+        comida = Menu.objects.filter(item=item,restaurante=restaurante.id).first()
         if not comida:
             return render(request, 'menu.html', {'error': 'Menú no encontrado.'})
+        
+        codigos = comida.codigo.split(',')
+        # Convertir cada elemento de la lista a un número
+        codigos_numericos = [int(codigo) for codigo in codigos]
         form = Items(initial={ 
             'plato': comida.comida, 
             'precio': comida.precios,
-            'ingredientes': Ingredientes.objects.filter(codigo__in=comida.codigo.split(','))
+            'ingredientes': Ingredientes.objects.filter(codigo__in=codigos_numericos)
             })
         return render(request, 'editar_menu.html', {'form': form,'code':comida.item})
 
     if request.method == "POST":
         try:
-            comida = Menu.objects.filter(item=item).first()
+            comida = Menu.objects.filter(item=item,restaurante=restaurante.id).first()
             if not comida:
                 return render(request, 'menu.html', {'error': 'Comida no encontrado.'})
             

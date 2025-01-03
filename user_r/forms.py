@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import ModelForm
-from .models import Restaurante,Ingredientes,Pago,Zelle,Paypal
+from .models import Restaurante,Ingredientes,Pago,Zelle,Paypal,Menu
 import csv
 #Lee los bancos registrados en el archivo csv y devuelve una lista con ellos
 def read_banks():
@@ -27,7 +27,7 @@ class CuentaRestaurante(ModelForm):
             'logo': forms.TextInput(attrs={'maxlength': 100}),
         }
 #formulario para actualizar los platos y crearlos
-class Items(forms.Form):
+class Items(forms.ModelForm):
     plato = forms.CharField(
         max_length=54,
         label="Plato",
@@ -44,10 +44,13 @@ class Items(forms.Form):
     #hacer una lista tipo select con css con casillas checkbox y con una barra de busqueda
     ingredientes = forms.ModelMultipleChoiceField(
         queryset=Ingredientes.objects.all(),
-        widget=forms.CheckboxSelectMultiple,
         label="Seleccione ingredientes",
         to_field_name='codigo'
     )
+    class Meta:
+        model=Menu
+        fields=['plato','precio','ingredientes']
+
 class PagoForm(forms.Form):
     banco = forms.ChoiceField(
         choices=read_banks(),

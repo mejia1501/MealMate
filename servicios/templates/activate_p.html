@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ Nombre }}</title>
+    <title>{{ nombre }} Pickup</title>
     
 </head>
 <body>
@@ -17,11 +17,11 @@
     <a href="{% url 'menu' %}"><button id="tab-2" name="tab" value="menu">Menú</button></a>
     
     <a href="{% url 'paypal' %}"><button id="tab-3" name="tab" value="pago">Metodos de pago</button></a>
-    <button id="tab-4" name="tab" value="servicios">Servicios</button>
+    <button disabled id="tab-4" name="tab" value="servicios">Servicios</button>
     <br>
 
     <a href="{% url 'activate_d' %}"><button id="tab-5" name="tab" value="delivery">Delivery</button></a>
-    <button id="tab-6" name="tab" value="pickup">Pickup</button>
+    <button id="tab-6" name="tab" disabled value="pickup">Pickup</button>
     <a href="{% url 'activate_r' %}"><button id="tab-7" name="tab" value="reservacion">Reservaciones</button></a>
 
     <br>

@@ -9,9 +9,9 @@
 </head>
 <body>
     <!-- True=pickup, False=delivery -->
-    {% if pedido %}
+    {% if type %}
     <a href="{% url 'pedidos2' item %}">Volver</a>
-    {% else %}
+    {% elif not type %}
     <a href="{% url 'pedidos' item %}">Volver</a>
     {% endif %}
     <h1>Datos del cliente</h1>
