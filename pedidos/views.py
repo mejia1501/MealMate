@@ -1,9 +1,9 @@
 from django.shortcuts import render,redirect
-from .models import Pedido_Delivery,ZelleModel,PagoNacional,PaypalModel,Pedido_Pickup
+from .models import PedidoModel,ZelleModel,PagoMovil,PaypalModel,PagoEfectivo
 from user_r.models import Restaurante,Menu,Ingredientes,Pago,Paypal,Zelle
 from usuario_sesion.models import Cliente
 from usuario_sesion.forms import IniciarSesion
-from .forms import Datos_Form,PagoMovilForm,PagoPaypalForm,PagoZelleForm
+from .forms import Datos_Form,PagoMovilForm,PagoPaypalForm,PagoZelleForm,EfectivoForm
 from django.utils import timezone
 import datetime
 import csv
@@ -38,7 +38,7 @@ def DetailsDelivery(request,nro):
         if request.method=="GET":
             
             #nro inidca el pedido en la base de datos, cada uno tiene un numero diferente
-            pedido=Pedido_Delivery.objects.filter(id_nro=restaurante.id,nro=nro).first()
+            pedido=PedidoModel.objects.filter(id_nro=restaurante.id,nro=nro,is_delivery=True,is_pickup=False).first()
 
             # Verificar si 'elegidos' tiene un solo elemento
             if ',' not in str(pedido.nro_items):
@@ -93,9 +93,12 @@ def DetailsDelivery(request,nro):
 
             #pago,nro=nro de pedido
 
-            pago_nacional=PagoNacional.objects.filter(pedido=nro,id_nro=restaurante.id).first()
-            zelle=ZelleModel.objects.filter(pedido=nro,id_nro=restaurante.id).first()
-            paypal=PaypalModel.objects.filter(pedido=nro,id_nro=restaurante.id).first()
+            pago_nacional=PagoMovil.objects.filter(pedido=nro).first()
+            zelle=ZelleModel.objects.filter(pedido=nro).first()
+            paypal=PaypalModel.objects.filter(pedido=nro).first()
+            efectivo=PagoEfectivo.objects.filter(pedido=nro).first()
+
+            diccionario=False
 
             if pago_nacional:
                 pago=pago_nacional
@@ -107,8 +110,20 @@ def DetailsDelivery(request,nro):
             elif paypal:
                 pago=paypal
                 text="Paypal"
+            elif efectivo:
+                text = "Efectivo"
+                efectivo.billetes = efectivo.billetes.split(',')
+                name = ['1$', '5$', '10$', '20$', '50$', '100$']
+                pago = {}
 
-            return render(request, 'detail_delivery.html',{
+                for i in range(len(efectivo.billetes)):  # Usa range para iterar sobre los índices
+                    cantidad = int(efectivo.billetes[i])  # Convierte a entero
+                    if cantidad != 0:  # Verifica si la cantidad no es cero
+                        pago[name[i]] = cantidad  # Asigna la cantidad al nombre correspondiente
+
+                diccionario = True
+
+            return render(request, 'detail_pickup.html',{
                 'pedidos':pedido,
                 'nombre':restaurante.nombre,
                 'detalles':detalles_items,
@@ -116,13 +131,14 @@ def DetailsDelivery(request,nro):
                 'iva': round(iva, 2),
                 'pago':pago,
                 'text':text,
+                'diccionario': diccionario,
             })
         else:#request("POST")
             status = request.POST.get('status')
             try:
 
                 if status and nro:
-                    pedido=Pedido_Delivery.objects.filter(nro=nro,id_nro=restaurante.id).first()
+                    pedido=PedidoModel.objects.filter(id_nro=restaurante.id,nro=nro,is_pickup=False,is_delivery=True).first()
                     pedido.status=status
                     pedido.save()
 
@@ -146,7 +162,7 @@ def DetailsPickup(request,nro):
         if request.method=="GET":
             
             #nro inidca el pedido en la base de datos, cada uno tiene un numero diferente
-            pedido=Pedido_Pickup.objects.filter(id_nro=restaurante.id,nro=nro).first()
+            pedido=PedidoModel.objects.filter(id_nro=restaurante.id,nro=nro,is_pickup=True,is_delivery=False).first()
 
             # Verificar si 'elegidos' tiene un solo elemento
             if ',' not in str(pedido.nro_items):
@@ -201,9 +217,12 @@ def DetailsPickup(request,nro):
 
             #pago,nro=nro de pedido
 
-            pago_nacional=PagoNacional.objects.filter(pedido=nro,id_nro=restaurante.id).first()
-            zelle=ZelleModel.objects.filter(pedido=nro,id_nro=restaurante.id).first()
-            paypal=PaypalModel.objects.filter(pedido=nro,id_nro=restaurante.id).first()
+            pago_nacional=PagoMovil.objects.filter(pedido=nro).first()
+            zelle=ZelleModel.objects.filter(pedido=nro).first()
+            paypal=PaypalModel.objects.filter(pedido=nro).first()
+            efectivo=PagoEfectivo.objects.filter(pedido=nro).first()
+
+            diccionario=False
 
             if pago_nacional:
                 pago=pago_nacional
@@ -215,6 +234,18 @@ def DetailsPickup(request,nro):
             elif paypal:
                 pago=paypal
                 text="Paypal"
+            elif efectivo:
+                text = "Efectivo"
+                efectivo.billetes = efectivo.billetes.split(',')
+                name = ['1$', '5$', '10$', '20$', '50$', '100$']
+                pago = {}
+
+                for i in range(len(efectivo.billetes)):  # Usa range para iterar sobre los índices
+                    cantidad = int(efectivo.billetes[i])  # Convierte a entero
+                    if cantidad != 0:  # Verifica si la cantidad no es cero
+                        pago[name[i]] = cantidad  # Asigna la cantidad al nombre correspondiente
+
+                diccionario = True
 
             return render(request, 'detail_pickup.html',{
                 'pedidos':pedido,
@@ -224,13 +255,13 @@ def DetailsPickup(request,nro):
                 'iva': round(iva, 2),
                 'pago':pago,
                 'text':text,
+                'diccionario': diccionario,
             })
         else:#request("POST")
             status = request.POST.get('status')
             try:
-
                 if status and nro:
-                    pedido=Pedido_Delivery.objects.filter(nro=nro,id_nro=restaurante.id).first()
+                    pedido=PedidoModel.objects.filter(id_nro=restaurante.id,nro=nro,is_pickup=True,is_delivery=False).first()
                     pedido.status=status
                     pedido.save()
 
@@ -364,11 +395,12 @@ def Registro_datos_view(request,id):
 
 def PagoMovilView(request, id):
     id = int(id)
-    tipo=request.session.get('type')
     if request.session.get('type')==False:#delivery
         total=request.session.get('total')
     elif request.session.get('type')==True:#Pickup
         total=request.session.get('total2')
+    if request.session.get('email'):
+        request.session['registro']=False
     
     if total is None:
         return render(request, 'pago_movil.html', {'error': 'Total no encontrado en la sesión.'})  # Manejo de error
@@ -413,20 +445,23 @@ def PagoMovilView(request, id):
         form = PagoMovilForm(request.POST)
         if form.is_valid():
             try:
-                notas=[]
-                for i in request.session['elegidos'].split(','):
-                    comentario = request.session.get(f'comentario_{i}', '')
-                    if comentario:
-                        notas.append(comentario)
-                notas2=[]
-                for i in request.session['elegidos2'].split(','):
-                    comentario = request.session.get(f'2comentario_{i}', '')
-                    if comentario:
-                        notas2.append(comentario)
+                if request.session.get('elegidos'):
+                    notas=[]
+                    for i in request.session.get('elegidos').split(','):
+                        comentario = request.session.get(f'comentario_{i}', '')
+                        if comentario:
+                            notas.append(comentario)
+                
+                if request.session.get('elegidos2'):
+                    notas2=[]
+                    for i in request.session.get('elegidos2').split(','):
+                        comentario2 = request.session.get(f'2comentario_{i}', '')
+                        if comentario2:
+                            notas2.append(comentario2)
                  # Al registrar un nuevo pedido
                 # Crear una nueva instancia de Pedido_Delivery
                 if request.session.get('type')==False:#True=pickup, False=delivery
-                    nuevo_pedido = Pedido_Delivery(
+                    nuevo_pedido = PedidoModel(
                         id_nro=restaurante,
                         nro_items=request.session.get('elegidos'),
                         fecha=datetime.datetime.combine(fecha_actual, datetime.datetime.strptime(hora, '%H:%M').time()),
@@ -438,10 +473,12 @@ def PagoMovilView(request, id):
                         telefono=request.session.get('telefono'),
                         ubicacion=request.session.get('ubicacion'),
                         status=False,
-                        monto=total
+                        monto=total,
+                        is_delivery=True,
+                        is_pickup=False,
                     )
                 elif request.session.get('type')==True:#True=pickup, False=delivery
-                    nuevo_pedido = Pedido_Pickup(
+                    nuevo_pedido = PedidoModel(
                         id_nro=restaurante,
                         nro_items=request.session.get('elegidos2'),
                         fecha=datetime.datetime.combine(fecha_actual, datetime.datetime.strptime(hora, '%H:%M').time()),
@@ -451,22 +488,22 @@ def PagoMovilView(request, id):
                         identificacion=request.session.get('identificacion'),
                         email=request.session.get('mail'),
                         telefono=request.session.get('telefono'),
-                        ubicacion=request.session.get('ubicacion'),
-                        status=False
+                        status=False,
+                        monto=total,
+                        is_delivery=False,
+                        is_pickup=True,
                     )
                 nuevo_pedido.save()  # Esto crea un nuevo registro en la base de datos
 
-                # Crear una nueva instancia de PagoNacional
-                nuevo_pago = PagoNacional(
-                    id_nro=restaurante,
-                    pedido=nuevo_pedido.nro,  # Asigna la instancia del pedido
-                    is_pagomovil=True,
+                # Crear una nueva instancia de PagoMovil
+                nuevo_pago = PagoMovil(
+                    pedido=nuevo_pedido,  # Asigna la instancia del pedido
                     banco=form.cleaned_data['banco'],
                     monto=total,
                     ref=form.cleaned_data['ref'],
                     titular=form.cleaned_data['nombre'],
                     telefono=form.cleaned_data['telefono'],
-                    is_efectivo=False
+                    
                 )
                 nuevo_pago.save() 
                     # Guardar el valor de la variable que deseas conservar
@@ -540,15 +577,23 @@ def ZellePagoView(request, id):
         form = PagoZelleForm(request.POST)
         if form.is_valid():
             try:
-                notas=[]
-                for i in request.session['elegidos'].split(','):
-                    comentario = request.session.get(f'comentario_{i}', '')
-                    if comentario:
-                        notas.append(comentario)
+                if request.session.get('elegidos'):
+                    notas=[]
+                    for i in request.session.get('elegidos').split(','):
+                        comentario = request.session.get(f'comentario_{i}', '')
+                        if comentario:
+                            notas.append(comentario)
+                
+                if request.session.get('elegidos2'):
+                    notas2=[]
+                    for i in request.session.get('elegidos2').split(','):
+                        comentario2 = request.session.get(f'2comentario_{i}', '')
+                        if comentario2:
+                            notas2.append(comentario2)
                 # Al registrar un nuevo pedido
                 # Crear una nueva instancia de Pedido_Delivery
                 if request.session.get('type')==False:#True=pickup, False=delivery
-                    nuevo_pedido = Pedido_Delivery(
+                    nuevo_pedido = PedidoModel(
                         id_nro=restaurante,
                         nro_items=request.session.get('elegidos'),
                         fecha=datetime.datetime.combine(fecha, hora_actual),
@@ -560,28 +605,31 @@ def ZellePagoView(request, id):
                         telefono=request.session.get('telefono'),
                         ubicacion=request.session.get('ubicacion'),
                         status=False,
-                        monto=total
+                        monto=total,
+                        is_delivery=True,
+                        is_pickup=False,
                     )
                 elif request.session.get('type')==True:#True=pickup, False=delivery
-                    nuevo_pedido = Pedido_Pickup(
+                    nuevo_pedido = PedidoModel(
                         id_nro=restaurante,
-                        nro_items=request.session.get('elegidos'),
+                        nro_items=request.session.get('elegidos2'),
                         fecha=datetime.datetime.combine(fecha, hora_actual),
-                        notas=';'.join(notas),
-                        cantidades=request.session.get('cantidad'),
+                        notas=';'.join(notas2),
+                        cantidades=request.session.get('cantidad2'),
                         nombre=request.session.get('nombre'),
                         identificacion=request.session.get('identificacion'),
                         email=request.session.get('mail'),
                         telefono=request.session.get('telefono'),
-                        ubicacion=request.session.get('ubicacion'),
-                        status=False
+                        status=False,
+                        monto=total,
+                        is_delivery=False,
+                        is_pickup=True,
                     )
                 nuevo_pedido.save()  # Esto crea un nuevo registro en la base de datos
 
-                # Crear una nueva instancia de PagoNacional
+                # Crear una nueva instancia de PagoMovil
                 nuevo_pago = ZelleModel(
-                    id_nro=restaurante,
-                    pedido=nuevo_pedido.nro,  # Asigna la instancia del pedido
+                    pedido=nuevo_pedido,  # Asigna la instancia del pedido
                     monto=total,
                     ref=form.cleaned_data['ref'],
                     titular=form.cleaned_data['nombre'],
@@ -615,6 +663,174 @@ def ZellePagoView(request, id):
                 'rif': restaurante.rif,
         })
 
+
+def EfectivoPagoView(request,id):
+    restaurante=Restaurante.objects.filter(id=id).first()
+    pago_nacional=Pago.objects.filter(restaurante=restaurante.id).first()
+    zelle = Zelle.objects.filter(restaurante=restaurante.id).first()
+    paypal = Paypal.objects.filter(restaurante=restaurante.id).first()
+
+    print('TYPE ',request.session.get('type'))
+    if request.session.get('type')==False:#delivery
+        total=request.session.get('total')
+    elif request.session.get('type')==True:#Pickup
+        total=request.session.get('total2')
+    print('TOTAL ',total)
+
+    if request.method=="GET":
+        return render(request,'pago_efectivo.html',{
+            'form':EfectivoForm(),
+            'nombre':restaurante.nombre,
+            'item': restaurante.id,
+            'registro': bool(request.session.get('registro')),
+            'type': bool(request.session.get('type')),
+            'pago_movil': pago_nacional.pagomovil_active if pago_nacional.pagomovil_active else False,
+            'zelle': zelle.zelle_active if zelle else False,
+            'paypal': paypal.paypal_active if paypal else False,
+            'total':total,
+        })
+    elif request.method=="POST":
+        form=EfectivoForm(request.POST)
+        if form.is_valid():
+            billetes=[
+                int(form.cleaned_data['uno']),
+                int(form.cleaned_data['cinco']),
+                int(form.cleaned_data['diez']),
+                int(form.cleaned_data['veinte']),
+                int(form.cleaned_data['cincuenta']),
+                int(form.cleaned_data['cien']),
+            ]
+            print("Billetes", billetes)
+            billetes2=[
+                billetes[0],
+                billetes[1]*5,
+                billetes[2]*10,
+                billetes[3]*20,
+                billetes[4]*50,
+                billetes[5]*100,
+            ]
+            suma=sum(billetes2)
+            print("SUma ",suma)
+            
+            if suma==0:
+                return render(request,'pago_efectivo.html',{
+                    'error': 'Por favor, ingrese la cantidad de dólares que posee para poder procesar el pago.',
+                    'form':EfectivoForm(),
+                    'nombre':restaurante.nombre,
+                    'registro': bool(request.session.get('registro')),
+                    'type': bool(request.session.get('type')),
+                    'pago_movil': pago_nacional.pagomovil_active if pago_nacional.pagomovil_active else False,
+                    'zelle': zelle.zelle_active if zelle else False,
+                    'paypal': paypal.paypal_active if paypal else False,
+                    'total':total,
+                    'item': restaurante.id,
+                })
+            elif suma<total:
+                return render(request,'pago_efectivo.html',{
+                    'error': 'La cantidad de dinero ingresada no es suficiente para cubrir el monto del pedido.',
+                    'form':EfectivoForm(),
+                    'nombre':restaurante.nombre,
+                    'registro': bool(request.session.get('registro')),
+                    'type': bool(request.session.get('type')),
+                    'pago_movil': pago_nacional.pagomovil_active if pago_nacional.pagomovil_active else False,
+                    'zelle': zelle.zelle_active if zelle else False,
+                    'paypal': paypal.paypal_active if paypal else False,
+                    'total':total,
+                    'item': restaurante.id,
+                })
+            elif total<=25 and billetes[5]!=0:
+                return render(request,'pago_efectivo.html',{
+                    'error': 'Se aceptarán billetes de hasta $50 para pedidos menores a $25',
+                    'form':EfectivoForm(),
+                    'nombre':restaurante.nombre,
+                    'registro': bool(request.session.get('registro')),
+                    'type': bool(request.session.get('type')),
+                    'pago_movil': pago_nacional.pagomovil_active if pago_nacional.pagomovil_active else False,
+                    'zelle': zelle.zelle_active if zelle else False,
+                    'paypal': paypal.paypal_active if paypal else False,
+                    'total':total,
+                    'item': restaurante.id,
+                })
+            else:#registrar pago
+                try:
+                    if request.session.get('elegidos'):
+                        notas=[]
+                        for i in request.session.get('elegidos').split(','):
+                            comentario = request.session.get(f'comentario_{i}', '')
+                            if comentario:
+                                notas.append(comentario)
+                
+                    if request.session.get('elegidos2'):
+                        notas2=[]
+                        for i in request.session.get('elegidos2').split(','):
+                            comentario2 = request.session.get(f'2comentario_{i}', '')
+                            if comentario2:
+                                notas2.append(comentario2)
+                    # Al registrar un nuevo pedido
+                    # Crear una nueva instancia de Pedido_Delivery
+                    if request.session.get('type')==False:#True=pickup, False=delivery
+                        nuevo_pedido = PedidoModel(
+                            id_nro=restaurante,
+                            nro_items=request.session.get('elegidos'),
+                            fecha=timezone.now(),
+                            notas=';'.join(notas),
+                            cantidades=request.session.get('cantidad'),
+                            nombre=request.session.get('nombre'),
+                            identificacion=request.session.get('identificacion'),
+                            email=request.session.get('mail'),
+                            telefono=request.session.get('telefono'),
+                            ubicacion=request.session.get('ubicacion'),
+                            status=False,
+                            monto=total,
+                            is_delivery=True,
+                            is_pickup=False,
+                        )
+                    elif request.session.get('type')==True:#True=pickup, False=delivery
+                        nuevo_pedido = PedidoModel(
+                            id_nro=restaurante,
+                            nro_items=request.session.get('elegidos2'),
+                            fecha=timezone.now(),
+                            notas=';'.join(notas2),
+                            cantidades=request.session.get('cantidad2'),
+                            nombre=request.session.get('nombre'),
+                            identificacion=request.session.get('identificacion'),
+                            email=request.session.get('mail'),
+                            telefono=request.session.get('telefono'),
+                            monto=total,
+                            is_delivery=False,
+                            is_pickup=True,
+                        )
+                    nuevo_pedido.save()  # Esto crea un nuevo registro en la base de datos
+
+                    # Crear una nueva instancia de PagoMovil
+                    nuevo_pago = PagoEfectivo(
+                        pedido=nuevo_pedido,  # Asigna la instancia del pedido
+                        monto=total,
+                        billetes=','.join(map(str, billetes)),
+                    )
+                    nuevo_pago.save() 
+                        # Guardar el valor de la variable que deseas conservar
+                    valor_a_conservar = request.session.get('email')
+                        # Vaciar todas las variables de sesión
+                    request.session.flush()
+                        # Restaurar la variable que deseas conservar
+                    request.session['email'] = valor_a_conservar
+                    return redirect('success')
+                
+                except Exception as e:
+                    return render(request,'pago_efectivo.html',{
+                            'error': f"ERROR: {e} ",
+                            'form':EfectivoForm(),
+                            'nombre':restaurante.nombre,
+                            'registro': bool(request.session.get('registro')),
+                            'type': bool(request.session.get('type')),
+                            'pago_movil': pago_nacional.pagomovil_active if pago_nacional.pagomovil_active else False,
+                            'zelle': zelle.zelle_active if zelle else False,
+                            'paypal': paypal.paypal_active if paypal else False,
+                            'total':total,
+                            'item': restaurante.id,
+                    })
+    
 def SuccessView(request):
     if request.method=="GET":
         return render(request,'success.html',{

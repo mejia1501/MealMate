@@ -3,9 +3,9 @@ from .models import Reservaciones_config,Pickup_Delivery,Reservaciones_horario
 from .forms import CheckPickForm,CheckReserForm,CheckDelivForm
 from usuario_sesion.forms import IniciarSesion
 from user_r.models import Restaurante
-from pedidos.models import Pedido_Delivery,Pedido_Pickup
+from pedidos.models import PedidoModel
 from datetime import date,datetime
-from pedidos.models import Pedido_Delivery
+from pedidos.models import PedidoModel
 from django.http import JsonResponse
 from django.utils import timezone
 import datetime
@@ -183,7 +183,7 @@ def DeliveryView(request):
     if delivery and delivery.active_delivery:
         if request.method == 'GET':
             # Obtener los pedidos del restaurante
-            pedidos = Pedido_Delivery.objects.filter(id_nro=restaurante.id).all()
+            pedidos = PedidoModel.objects.filter(id_nro=restaurante.id,is_pickup=False,is_delivery=True).all()
 
             # Obtener la fecha actual
             fecha_actual = timezone.now()
@@ -229,7 +229,7 @@ def DeliveryView(request):
                     if delivery.active_delivery==True:
                         delivery.active_pickup=True
                         delivery.save()
-                    pedido=Pedido_Delivery.objects.filter(nro=nro,id_nro=restaurante.id).first()
+                    pedido=PedidoModel.objects.filter(nro=nro,id_nro=restaurante.id,is_pickup=False,is_delivery=True).first()
                     pedido.status=status
                     pedido.save()
 
@@ -276,7 +276,7 @@ def PickupView(request):
     if pickup and pickup.active_pickup:
         if request.method == 'GET':
             # Obtener los pedidos del restaurante
-            pedidos = Pedido_Pickup.objects.filter(id_nro=restaurante.id).all()
+            pedidos = PedidoModel.objects.filter(id_nro=restaurante.id,is_pickup=True,is_delivery=False).all()
 
             # Obtener la fecha actual
             fecha_actual = timezone.now()
@@ -305,13 +305,21 @@ def PickupView(request):
             check = CheckPickForm(request.POST, instance=pickup)  # Inicializa check aquí
             inicio = request.POST.get('inicio')  # Captura el valor de inicio
             cierre = request.POST.get('cierre')  # Captura el valor de cierre
+            status = request.POST.get('status')
+            nro = request.POST.get('nro')
             try:
                 if inicio and cierre:
                 # guardar en el modelo
                     pickup.p_start_time = inicio
                     pickup.p_end_time = cierre
                     pickup.save()
-
+                if status and nro:
+                    if pickup.active_pickup==True:
+                        pickup.active_pickup=True
+                        pickup.save()
+                    pedido=PedidoModel.objects.filter(nro=nro,id_nro=restaurante.id,is_pickup=True,is_delivery=False).first()
+                    pedido.status=status
+                    pedido.save()
                 # Solo guarda check si es válido
                 if check.is_valid():
                     # Aquí puedes decidir si quieres actualizar el estado del pickup

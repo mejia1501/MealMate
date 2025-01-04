@@ -17,7 +17,8 @@ urlpatterns=[
     path('restaurantes/modificar_pedido2/<str:id>/<str:item>/',views.ModificarPedido2,name='modificar_pedido2'),
 
     path('restaurantes/ubicacion/<str:id>/',views.UbicacionView,name='ubicacion'),
-
+    path('restaurantes/eliminar_pedido/<str:key>/<str:id>/',views.EliminarPedidoView,name='eliminar_pedido'),
+    
     path('user/',include('usuario_sesion.urls')),
     path('restaurante/', include('user_r.urls')),
     path('pedido/', include('pedidos.urls')),

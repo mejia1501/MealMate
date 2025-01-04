@@ -47,11 +47,12 @@
     {% if pago.banco %}
     <li class="list-group-item"><b>Banco</b> {{ pago.banco }}</li>
     {% endif %}
-
+    {% if pago.ref %}
     <li class="list-group-item"><b>Número de referencia</b> {{ pago.ref }}</li>
-
+    {% endif %}
+    {% if pago.titular %}
     <li class="list-group-item"><b>Titular</b> {{ pago.titular }}</li>
-
+    {% endif %}
     {% if pago.telefono %}
     <li class="list-group-item"><b>Número de telefono</b> {{ pago.telefono }}</li>
     {% endif %}
@@ -60,6 +61,27 @@
     <li class="list-group-item"><b>Direccion de correo electronico</b> {{ pago.email }}</li>
     {% endif %}
   </ul>
+<br>
+
+{% if diccionario %}
+<p><strong>Billetes con los que dispone el cliente para el pago</strong></p><br>
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">Valor</th>
+                <th scope="col">Cantidad</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for key, value in pago.items %}  {# Cambia 'pago' a 'pago.items' #}
+                <tr>
+                    <th scope="row">{{ key }}</th>
+                    <td>{{ value }}</td>  {# Cambia 'valor' a 'value' #}
+                </tr> 
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
 <br>
 
     <div class="container">

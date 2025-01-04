@@ -6,15 +6,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <title>MealMate - Pago</title>
 </head>
 <body>
     {% if registro %}
     <a href="{% url 'registro_datos' item %}">Volver</a>
     <!-- True=pickup, False=delivery -->
-    {% elif pedidos %}
+    {% elif type %}
         <a href="{% url 'pedidos2' item %}">Volver</a>
-    {% elif not pedidos %}
+    {% elif not type %}
         <a href="{% url 'pedidos' item %}">Volver</a>
     {% endif %}
 
@@ -24,14 +25,14 @@
           <a class="nav-link" href="{% url 'pago_movil' item %}">Pago movil</a>
         </li>
         {% endif %}
-        {% if efectivo %}
+        
         <li class="nav-item">
-          <a class="nav-link" href="{% url 'pago_efectivo' item %}">Efectivo</a>
+          <a class="nav-link active" aria-current="page" href="#">Efectivo</a>
         </li>
-        {% endif %}
+        
         {% if zelle %}
         <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="#">Zelle</a>
+            <a class="nav-link" href="{% url 'zelle_pago' item %}">Zelle</a>
           </li>
         {% endif %}
         {% if paypal %}
@@ -41,37 +42,42 @@
         {% endif %}
       </ul>
 
-    <h1>Zelle</h1>
-    <br><br>
+    <h1>Efectivo</h1>
+    <br>
     <h3>{{ nombre }}</h3>
     {% if error %}
-    <<div
+    <div
         class="alert alert-danger"
         role="alert"
     >
         <strong>Error</strong> {{ error }}
     </div>
-    {% endif %}
-
-    {% if zelle %}
-    <h3>Datos zelle del restaurante</h3>
-    <ul class="list-group list-group-flush">
-        <li class="list-group-item"><strong>Email</strong> {{ pago_restaurante.mail_z }}</li>
-        <li class="list-group-item"><strong>Telefono</strong>  {{ pago_restaurante.phone_z }}</li>
-        <li class="list-group-item">
-            <strong>MONTO A PAGAR:</strong>
-            ${{ total }}
-        </li>
-      </ul>
     
-      {% endif %}
+    {% else %}
+
+    <div class="alert alert-primary d-flex align-items-center" role="alert" style="padding: 0.5rem 1rem;">
+      <svg xmlns="http://www.w3.org/2000/svg" class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16" role="img" aria-label="Warning:" style="width: 1.5em; height: 1.5em;">
+          <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+      </svg>
+      <div>
+          <strong>Política de Vuelto</strong><br>Se aceptarán billetes de hasta $50 para pedidos menores a $25.
+      </div>
+  </div>
+{% endif %}
+<br>
+
+<ul class="list-group list-group-flush">
+      <strong>MONTO A PAGAR:</strong>
+      ${{ total }}
+  </li>
+</ul>
+
 <br>
       {% if form %}
+      <strong>Por favor, indique los billetes disponibles para efectuar el pago del pedido.</strong><br>
       <form method="post">
         {% csrf_token %}
         {{ form }}
-        <input type="date" id="fecha" name="fecha">
-        <br><br>
         <input class="btn btn-primary" type="submit" value="Verificar">
       </form>
         {% endif %}

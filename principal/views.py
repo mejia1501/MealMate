@@ -160,7 +160,10 @@ def DeliveryView(request, item):
                 for menu_item in menu:
                     menu_item.codigo = obtener_ingredientes(menu_item.codigo)
 
-                activo = 'elegidos' in request.session
+                if request.session.get('elegidos')!="" and 'elegidos' in request.session:
+                    activo=True
+                else:
+                    activo=False
 
                 return render(request, 'delivery.html', {
                     'restaurante': restaurante, 
@@ -211,8 +214,11 @@ def PickupView(request, item):
 
             for menu_item in menu:
                 menu_item.codigo = obtener_ingredientes(menu_item.codigo)
-
-            activo = 'elegidos2' in request.session
+            print("Elegidos 2: ",request.session.get('elegidos2'))
+            if request.session.get('elegidos2')!="":
+                activo=True
+            else:
+                activo=False
 
             return render(request, 'pickup.html', {
                 'restaurante': restaurante, 
@@ -664,6 +670,8 @@ def PedidosView2(request,item):
     if request.method == "GET":
         # Recuperar las variables de sesión
         elegidos = request.session.get('elegidos2', 'No disponible')
+        if elegidos=="":
+            return redirect('presentacion_three',item)
         cantidad = request.session.get('cantidad2', 'No disponible')
 
         # Verificar si 'elegidos' y 'cantidad' son válidos
@@ -875,6 +883,114 @@ def UbicacionView(request, id):
                 'error': "Revise el formulario",
                 'form': form  # Mantener el formulario con los datos ingresados
             })
+        
+def EliminarPedidoView(request,key,id):
+    if request.session.get("type") == True:  # true=pickup, false=delivery
+        elegidos = request.session.get('elegidos2', 'No disponible')
+        cantidad = request.session.get('cantidad2', 'No disponible')
+        print('Elegidos 2 antes de eliminar: ', elegidos)
+        print('Cantidad 2 antes de eliminar: ', cantidad)
+
+        # Verificar si 'elegidos' tiene un solo elemento
+        if ',' not in str(elegidos):
+            elegidos = [elegidos]  # Convertir a lista con un solo elemento
+        else:
+            elegidos = elegidos.split(',')  # Dividir en lista
+
+        # Hacer lo mismo para 'cantidad'
+        if ',' not in str(cantidad):
+            cantidad = [cantidad]  # Convertir a lista con un solo elemento
+        else:
+            cantidad = cantidad.split(',')  # Dividir en lista
+
+        # Crear un diccionario para almacenar los detalles de los ítems
+        detalles_items = {}
+
+        # Iterar sobre los elegidos y sus cantidades
+        for i in range(len(elegidos)):
+            elegido = elegidos[i]
+            cant = cantidad[i] if i < len(cantidad) else '0'  # Asegurarse de que la cantidad exista
+
+            # Recuperar el comentario correspondiente
+            comentario = request.session.get(f'2comentario_{elegido}', 'No disponible')
+
+            detalles_items[i] = {
+                'item': elegido,
+                'cantidad': float(cant),  # Asegúrate de que sea float
+            }
+
+        key = int(key)  # Asegúrate de que 'key' sea un entero
+        if key in detalles_items:
+            detalles_items.pop(key)  # Eliminar el elemento correspondiente a 'key'
+
+        # Actualizar la sesión con los elementos restantes
+        nuevos_elegidos = []
+        nuevos_cantidades = []
+
+        for item in detalles_items.values():
+            nuevos_elegidos.append(item['item'])
+            nuevos_cantidades.append(str(item['cantidad']))
+            del request.session[f'2comentario_{item["item"]}']  # Eliminar el comentario correspondiente
+
+        # Guardar los nuevos valores en la sesión
+        request.session['elegidos2'] = ','.join(nuevos_elegidos)  # Unir los elementos restantes
+        request.session['cantidad2'] = ','.join(nuevos_cantidades)  # Unir las cantidades restantes
+
+        elegidos = request.session.get('elegidos2', 'No disponible')
+        cantidad = request.session.get('cantidad2', 'No disponible')
+        print('Elegidos 2 luego de eliminar: ', elegidos)
+        print('Cantidad 2 luego de eliminar: ', cantidad)
+
+        return redirect("pedidos2", item=id)
+
+    elif request.session.get("type")==False:
+
+        elegidos = request.session.get('elegidos', 'No disponible')
+        cantidad = request.session.get('cantidad', 'No disponible')
+
+        print('Elegidos 1 anres de eliminar: ',elegidos)
+        print ('Cantidad 1 antes de elminar: ',cantidad)
+
+        # Verificar si 'elegidos' tiene un solo elemento
+        if ',' not in str(elegidos):
+            elegidos = [elegidos]  # Convertir a lista con un solo elemento
+        else:
+            elegidos = elegidos.split(',')  # Dividir en lista
+
+        # Hacer lo mismo para 'cantidad'
+        if ',' not in str(cantidad):
+            cantidad = [cantidad]  # Convertir a lista con un solo elemento
+        else:
+            cantidad = cantidad.split(',')  # Dividir en lista
+
+        # Crear un diccionario para almacenar los detalles de los ítems
+        detalles_items = {}
+
+        # Iterar sobre los elegidos y sus cantidades
+        for i in range(len(elegidos)):
+            elegido = elegidos[i]
+            cant = cantidad[i] if i < len(cantidad) else '0'  # Asegurarse de que la cantidad exista
+
+            # Recuperar el comentario correspondiente
+            comentario = request.session.get(f'comentario_{elegido}', 'No disponible')
+
+            detalles_items[i] = {
+                'item': elegido,
+                'cantidad': float(cant),  # Asegúrate de que sea float
+            }
+        
+        if key in detalles_items:
+            detalles_items.pop(key)
+            for item in detalles_items.values():
+                request.session['elegidos'] = ',' + item['item']
+                request.session['cantidad'] = ',' + str(item['cantidad'])
+                del request.session[f'comentario_{item["item"]}']
+        elegidos = request.session.get('elegidos', 'No disponible')
+        cantidad = request.session.get('cantidad', 'No disponible')
+        print('Elegidos 1 luego de eliminar: ',elegidos)
+        print ('Cantidad 1 luego de elminar: ',cantidad)
+        return redirect("pedidos",item=id)
+
         
 def obtener_ingredientes(codigo):
     #Función para obtener ingredientes a partir de los códigos.

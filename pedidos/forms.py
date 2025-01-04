@@ -1,6 +1,4 @@
 from django import forms
-from django.forms import ModelForm
-import datetime
 import csv
 
 #Lee los bancos registrados en el archivo csv y devuelve una lista con ellos
@@ -101,17 +99,56 @@ class PagoPaypalForm(forms.Form):
     hora=forms.TimeField(
         widget=forms.TimeInput(),
         required=True,
-        label="<strong>Hora del pago</strong><br>",
+        label="Hora del pago ",
     )
     nombre=forms.CharField(
         max_length=40,
         widget=forms.TextInput(),
-        label="<strong>Nombre del Titular de la Cuenta:</strong><br>",
+        label="Nombre del Titular de la Cuenta ",
         required=True,
     )
     email=forms.EmailField(
         max_length=20,
         widget=forms.EmailInput(),
-        label="<strong>Correo Electrónico Asociado a PayPal</strong><br>",
+        label="<strong>Correo Electrónico Asociado a PayPal ",
         required=True,
     )
+
+class EfectivoForm(forms.Form):
+    uno=forms.IntegerField(
+        min_value=0,
+        label="$ 1 ",
+        initial=0,
+        widget=forms.NumberInput(attrs={'step': '1'})
+    )
+    cinco=forms.IntegerField(
+        min_value=0,
+        label="$ 5 ",
+        initial=0,
+        widget=forms.NumberInput(attrs={'step': '1'})
+    )
+    diez=forms.IntegerField(
+        min_value=0,
+        label="$ 10 ",
+        initial=0,
+        widget=forms.NumberInput(attrs={'step': '1'})
+    )
+    veinte=forms.IntegerField(
+        min_value=0,
+        label="$ 20 ",
+        initial=0,
+        widget=forms.NumberInput(attrs={'step': '1'})
+    )
+    cincuenta=forms.IntegerField(
+        min_value=0,
+        label="$ 50 ",
+        initial=0,
+        widget=forms.NumberInput(attrs={'step': '1'})
+    )
+    cien=forms.IntegerField(
+        min_value=0,
+        label="$ 100 ",
+        initial=0,
+        widget=forms.NumberInput(attrs={'step': '1'})
+    )
+    

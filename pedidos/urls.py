@@ -7,5 +7,6 @@ urlpatterns=[
     path('datos_cliente/<str:id>/',views.Registro_datos_view,name='registro_datos'),
     path('pago_movil/<str:id>/',views.PagoMovilView,name='pago_movil'),
     path('zelle/<str:id>/',views.ZellePagoView,name='zelle_pago'),
+    path('efectivo/<str:id>/',views.EfectivoPagoView,name='pago_efectivo'),
     path('pago/success/',views.SuccessView,name='success'),
 ]

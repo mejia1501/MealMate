@@ -13,9 +13,9 @@
     <a href="{% url 'registro_datos' item %}">Volver</a>
     <!-- True=pickup, False=delivery -->
     {% elif pedidos %}
-        <a href="restaurantes/pedidos1/{{ item }}/">Volver</a>
+        <a href="{% url 'pedidos2' item %}">Volver</a>
     {% elif not pedidos %}
-        <a href="restaurantes/pedidos1/{{ item }}/">Volver</a>
+        <a href="{% url 'pedidos' item %}">Volver</a>
     {% endif %}
 <br>
     <ul class="nav nav-underline">
@@ -24,7 +24,7 @@
         </li>
         {% if efectivo %}
         <li class="nav-item">
-          <a class="nav-link" href="#">Efectivo</a>
+          <a class="nav-link" href="{% url 'pago_efectivo' item %}">Efectivo</a>
         </li>
         {% endif %}
         {% if zelle %}
