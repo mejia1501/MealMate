@@ -89,52 +89,66 @@
     {{ check }}
     </form>
     <br>
-    <h4>Horarios</h4>
-    <div class="table-responsive-sm">
-        <table class="table table-light" id="horariosTable">
-            <thead>
-                <tr>
-                    <th scope="col">Fecha</th>
-                    <th scope="col">Mesa</th>
-                    <th scope="col">Horas</th>
-                    <th scope="col">Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for fecha, reservas in horarios.items %}
-                    {% for reserva in reservas %}
-                    <tr>
-                        <td scope="row">
-                            {{ fecha }}
-                        </td>
-                        <td>
-                            {{ reserva.mesa|add_one }}
-                        </td>
-                        <td>
-                            {% for hora in reserva.horas %}
-                            <a href="{% url 'modificar_reserva' reserva.fecha_str reserva.mesa hora %}">
-                            <button title="Modificar">{{ hora }}</button>
-                            </a>
-                            {% endfor %}
-                        </td>
-                        <td>
-                            <form method="post">
-                                {% csrf_token %}
-                                <input value="{{ reserva.mesa }}" type="hidden" name="mesa">
-                                <input value="{{ fecha }}" type="hidden" name="fecha">
-                                <input type="hidden" name="check" value="{{ check }}">
-                                <button  type="button" class="btn btn-danger">
-                                    <input type="submit" value="Eliminar">
-                                </button>
-                            </form>
-                            
-                        </td>
-                    </tr>
-                    {% endfor %}
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="alert alert-warning" role="alert">
+        <strong>Atencion!</strong> Las reservas anteriores a la fecha de ayer serán eliminadas.
     </div>
+    <br>
+    <h4>Horarios</h4>
+<div class="table-responsive-sm">
+    <table class="table table-light" id="horariosTable">
+        <thead>
+            <tr>
+                <th scope="col">Fecha</th>
+                <th scope="col">Mesa</th>
+                <th scope="col">Horas</th>
+                <th scope="col">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for fecha, reservas in horarios.items %}
+                {% for reserva in reservas %}
+                <tr>
+                    <td scope="row">
+                        {{ fecha }}
+                    </td>
+                    <td>
+                        {{ reserva.mesa|add_one }}
+                    </td>
+                    <td>
+                        {% for hora, estado in reserva.horas_status %}
+                            {% if estado %}  <!-- True=1=si está ocupado -->
+                                <a href="{% url 'ver_reserva' fecha reserva.mesa hora %}">
+                                    <button class="btn btn-danger" title="Ocupado">{{ hora }}</button>
+                                </a>
+                            {% elif not estado %}  <!-- False=0=no está ocupado -->
+                                <a href="{% url 'modificar_reserva' fecha reserva.mesa hora %}">
+                                    <button class="btn btn-success" title="Modificar">{{ hora }}</button>
+                                </a>
+                            {% endif %}
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {% if reserva.eliminar %}
+                        <form id="formulario2" method="post">
+                            {% csrf_token %}
+                            <input value="{{ reserva.mesa }}" type="hidden" name="mesa">
+                            <input value="{{ fecha }}" type="hidden" name="fecha">
+                            <input type="hidden" name="check" value="{{ check }}">
+                            <button type="submit" class="btn btn-outline-danger" aria-label="Eliminar reserva">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
+                                    <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l                            .5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"></path>
+                                </svg>
+                                Eliminar
+                            </button>
+                        {% endif %}
+                    </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
    
 <!-- Botón para abrir el modal -->
 <button id="openModalBtn">Añadir</button>

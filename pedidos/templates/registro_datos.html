@@ -13,6 +13,8 @@
     <a href="{% url 'pedidos2' item %}">Volver</a>
     {% elif not type %}
     <a href="{% url 'pedidos' item %}">Volver</a>
+    {% elif reservacion %}
+    <a href="{% url 'reser_hora' %}">Volver</a>
     {% endif %}
     <h1>Datos del cliente</h1>
     <br><br>

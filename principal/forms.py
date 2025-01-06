@@ -1,6 +1,4 @@
 from django import forms
-from django.forms import ModelForm
-
 class BarraBusqueda(forms.Form):
     texto = forms.CharField(
         label="Buscar",
@@ -36,3 +34,12 @@ class UbicacionForm(forms.Form):
         max_length=50,
         widget=forms.TextInput()
     )
+
+"""class PersonasForm(forms.Form):
+    for i in Reservaciones_config.
+    OPCIONES = [
+        ('opcion1', 'Opción 1'),
+        ('opcion2', 'Opción 2'),
+        ('opcion3', 'Opción 3'),
+    ]
+    seleccion = forms.ChoiceField(choices=OPCIONES, label="Selecciona una opción")"""

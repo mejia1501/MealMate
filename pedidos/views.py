@@ -1,11 +1,12 @@
 from django.shortcuts import render,redirect
 from .models import PedidoModel,ZelleModel,PagoMovil,PaypalModel,PagoEfectivo
 from user_r.models import Restaurante,Menu,Ingredientes,Pago,Paypal,Zelle
+from servicios.models import Reservaciones_config,Reservaciones_horario,Pickup_Delivery,Reservacion_cliente
 from usuario_sesion.models import Cliente
 from usuario_sesion.forms import IniciarSesion
 from .forms import Datos_Form,PagoMovilForm,PagoPaypalForm,PagoZelleForm,EfectivoForm
 from django.utils import timezone
-import datetime
+from datetime import datetime
 import csv
 # Create your views here.
 
@@ -284,8 +285,6 @@ def PagoView(request, id, total):
     cliente_restaurante = Restaurante.objects.filter(email=mail).first()
     cliente = Cliente.objects.filter(email=mail).first()
     tipo=request.session.get('type')
-    print("tipo",tipo)
-    print("toatal",total)
     if request.session.get('type')==False:#delivery
         request.session['total']=total
     elif request.session.get('type')==True:#Pickup
@@ -339,6 +338,7 @@ def Registro_datos_view(request,id):
     restaurante = Restaurante.objects.filter(id=id).first()
     if request.method == "GET":
         request.session['registro']=True
+
         
         form=Datos_Form(initial={
             'nombre':request.session.get('nombre'),
@@ -351,42 +351,107 @@ def Registro_datos_view(request,id):
              'ubicacion':request.session.get('ubicacion'),
              'item': restaurante.id,
              'nombre':restaurante.nombre,
+             'reservacion':request.session.get('reservacion'),
              'type':request.session.get('type')#True=pickup, False=delivery
              })
     
     if request.method == "POST":
         form = Datos_Form(request.POST)
         if form.is_valid():
-            request.session['registro'] = True
-            request.session['nombre'] = form.cleaned_data['nombre']
-            request.session['identificacion'] = form.cleaned_data['identificacion']
-            request.session['mail'] = form.cleaned_data['email']
-            request.session['telefono'] = form.cleaned_data['telefono']
 
-            pago_nacional = Pago.objects.filter(restaurante=restaurante.id).first()
-            zelle = Zelle.objects.filter(restaurante=restaurante.id).first()
-            paypal = Paypal.objects.filter(restaurante=restaurante.id).first()
+            if 'reservacion' in request.session:
+                print("SITVE la sesion reservacion")
+                mesa = request.session.get('mesa') 
+                fecha = request.session.get('fecha') 
+                hora = request.session.get('hora')
+                personas= request.session.get('puestos')
+                    
+                print("MESA ",mesa)
+                print("fecha ",fecha)
+                print("hora ",hora)
+                print("personas ",personas)
 
-            if pago_nacional and pago_nacional.pagomovil_active:
-                # Construir la URL con los parámetros
-                 return redirect('pago_movil',id=str(id))
+                fecha = datetime.strptime(fecha, '%Y-%m-%d').date()
+                mesa=int(mesa)
 
-            elif pago_nacional and pago_nacional.efectivo_active:
-                 return redirect('efectivo',id=str(id))
+            # Obtener las reservaciones
+                reservaciones = Reservaciones_horario.objects.filter(restaurante=restaurante.id, fecha=fecha, mesa=mesa).first()
 
-            elif zelle and zelle.zelle_active:
-                 return redirect('zelle',id=str(id))
+                # Inicializar lista
+                if reservaciones is None:
+                    lista = []  # Si no hay horas, inicializa como una lista vacía
+                else:
+                    # Dividir horas en una lista
+                    if isinstance(reservaciones.horas, str):
+                        lista = reservaciones.horas.split(',') if ',' in reservaciones.horas else [reservaciones.horas]
+                    else:
+                        lista = list(reservaciones.horas)  # Asegúrate de que esto sea correcto
 
-            elif paypal and paypal.paypal_active:
-                 return redirect('paypal',id=str(id))
+                    # Encontrar el índice de la hora
+                index = None
+                for idx, item in enumerate(lista):
+                    if item == hora:
+                        index = idx
+                        break  # Salir del bucle una vez que se encuentra el índice
+
+                    # Manejo del estado
+                if isinstance(reservaciones.status, str):
+                    status = reservaciones.status.split(',') if ',' in reservaciones.status else [reservaciones.status]
+                else:
+                    status = list(reservaciones.status)  # Asegúrate de que esto sea correcto
+
+                # Actualizar el estado
+                if index is not None:
+                    status[index] = '1'  # Cambiar a '1' para indicar que está ocupada
+                    reservaciones.status = ','.join(status)
+                reservaciones.save()
+                    
+                nueva_reservacion=Reservacion_cliente(
+                    restaurante = restaurante,
+                    nombre=form.cleaned_data['nombre'],
+                    identificacion=form.cleaned_data['identificacion'],
+                    email= form.cleaned_data['email'],
+                    telefono=form.cleaned_data['telefono'],
+                    fecha=fecha,
+                    hora=datetime.strptime(hora, "%H:%M"),
+                    mesa=mesa,
+                    nro_personas=int(personas),
+                )
+
+                nueva_reservacion.save()
+                return redirect('success')
 
             else:
-                return render(request, 'pago.html', {
-                    'nombre': restaurante.nombre,
-                    'item': restaurante.id,
-                    'pedidos': True if request.session.get('type') else False,
-                    'error': "El restaurante aún no posee medios de pago, lo sentimos"
-                })
+                request.session['registro'] = True
+                request.session['nombre'] = form.cleaned_data['nombre']
+                request.session['identificacion'] = form.cleaned_data['identificacion']
+                request.session['mail'] = form.cleaned_data['email']
+                request.session['telefono'] = form.cleaned_data['telefono']
+
+                pago_nacional = Pago.objects.filter(restaurante=restaurante.id).first()
+                zelle = Zelle.objects.filter(restaurante=restaurante.id).first()
+                paypal = Paypal.objects.filter(restaurante=restaurante.id).first()
+
+                if pago_nacional and pago_nacional.pagomovil_active:
+                    # Construir la URL con los parámetros
+                    return redirect('pago_movil',id=str(id))
+
+                elif pago_nacional and pago_nacional.efectivo_active:
+                    return redirect('efectivo',id=str(id))
+
+                elif zelle and zelle.zelle_active:
+                    return redirect('zelle',id=str(id))
+
+                elif paypal and paypal.paypal_active:
+                    return redirect('paypal',id=str(id))
+
+                else:
+                    return render(request, 'pago.html', {
+                        'nombre': restaurante.nombre,
+                        'item': restaurante.id,
+                        'pedidos': True if request.session.get('type') else False,
+                        'error': "El restaurante aún no posee medios de pago, lo sentimos"
+                    })
         else:
             return render(request, 'registro_datos.html', {
                 'form': Datos_Form(),
@@ -830,11 +895,384 @@ def EfectivoPagoView(request,id):
                             'total':total,
                             'item': restaurante.id,
                     })
-    
+
+def ReservacionesFechaView(request):
+    id=int(request.session.get('restaurante'))
+    personas=int(request.session.get('puestos'))
+    restaurante = Restaurante.objects.filter(id=id).first()
+
+    if not restaurante:
+        raise Restaurante.DoesNotExist
+    if request.method == 'GET':
+            # Procesar las mesas
+         # Obtener la configuración de reservaciones y la opción de entrega/pickup
+        reservacion = Reservaciones_config.objects.filter(restaurante=restaurante.id).first()
+        pandd = Pickup_Delivery.objects.filter(restaurante=restaurante.id).first() 
+
+        # Procesar las mesas
+        reservacion.mesas = reservacion.mesas.split(',')
+        reservacion.mesas = [int(valor) for valor in reservacion.mesas]  
+        # Encontrar mesas disponibles
+        # Inicializar la lista de índices
+        index = []
+
+        # Encontrar mesas disponibles
+        for i in range(len(reservacion.mesas)):
+            if reservacion.mesas[i] >= int(personas):
+                index.append(i)  # Indica la posición de la lista reservacion.mesas
+        disponible=[]
+        # Recopilar fechas de reservaciones para las mesas disponibles
+        lista = {}
+        for idx in index:
+            # Obtener el número de mesa
+            # Obtener las fechas asociadas a la mesa
+            idx=int(idx)
+
+            fechas = Reservaciones_horario.objects.filter(restaurante=restaurante, mesa=idx).all()
+            if fechas:
+                for item in fechas:
+                    if ',' in item.status:
+                        status=item.status.split(',')
+                        for a in status:
+                            if a=='0':
+                                disponible.append(item.mesa)
+                        if disponible:
+                            fecha_formateada = item.fecha.strftime('%Y-%m-%d')
+                            fecha_formateada=str(fecha_formateada)
+                                
+                                # Asegurarse de que la clave exista en el diccionario
+                            if fecha_formateada not in lista:
+                                lista[fecha_formateada]=""  # Inicializar como lista si no existe
+                                # Agregar el número de mesa a la lista de esa fecha
+                            if lista[fecha_formateada] =="":
+                                lista[fecha_formateada]+=str(disponible[0])
+                            else:
+                                lista[fecha_formateada]+=','+str(disponible[0])
+                    else:
+                        if item.status == "0":  # Si la mesa está disponible
+                            fecha_formateada = item.fecha.strftime('%Y-%m-%d')
+                            fecha_formateada=str(fecha_formateada)
+                            
+                            # Asegurarse de que la clave exista en el diccionario
+                            if fecha_formateada not in lista:
+                                lista[fecha_formateada] =""  # Inicializar como lista si no existe
+                            # Agregar el número de mesa a la lista de esa fecha
+                            if lista[fecha_formateada] =="":
+                                lista[fecha_formateada]+=str(item.mesa)
+                            else:
+                                lista[fecha_formateada]+=','+str(item.mesa)
+                disponible.clear()
+
+        # Imprimir el resultado
+        print("MESAS Y FECHAS ", lista)
+        print("MESA:",lista['2025-01-07'])
+        # Obtener la mesa mayor
+        mayor = max(reservacion.mesas)
+        return render(request, 'reser_fecha.html', {
+                    'restaurante': restaurante,
+                    'delivery': pandd.active_delivery if pandd else False,
+                    'pickup': pandd.active_pickup if pandd else False,
+                    'reservaciones': reservacion.active if reservacion else False,
+                    'mayor':mayor,
+                    'persona': int(personas),
+                    'personas': list(range(1, mayor + 1)),
+                    'mesas': lista,
+        })
+    elif request.method == 'POST':
+        personas2 = request.POST.get('personas')
+        fecha = request.POST.get('fecha')
+        
+        fecha=str(fecha)
+        fecha=fecha.split('+')
+        mesas=str(fecha[1])
+        fecha=str(fecha[0])
+
+        print("Datos recibidos:")
+        print("Personas:", personas2)
+        print("Fecha:", fecha)
+        print("Mesa: ",mesas)
+
+        if mesas and personas2 and fecha:
+            if ',' in mesas:
+                mesas=mesas.split(',')
+                mesas=str(mesas[0])
+
+            print("MESAS POST: ", mesas)
+            print("PERSONAS POST: ", personas2)
+            print("FECHA POST: ", fecha)
+
+            # Validar que 'personas2' y 'personas' sean enteros
+           
+            if int(personas2) != int(personas):
+                    request.session['puestos'] = personas2
+                    return redirect('presentacion_two', item=restaurante.id)
+            
+
+            # Verificar que todos los datos necesarios estén presentes
+            elif personas2 and fecha and mesas:
+                request.session['puestos'] = personas2
+                request.session['mesa'] = mesas
+                request.session['fecha'] = fecha
+                print("MESA: ", mesas)
+                return redirect('reser_hora')
+        else:
+            return render(request, 'reser_fecha.html', {
+                'error': "Revise los datos",
+            })
+        
+def ReservacionesHoraView(request):
+    id = request.session.get('restaurante')
+    personas = request.session.get('puestos')
+
+    if id is None or personas is None:
+        return render(request, 'error.html', {'message': 'Datos de sesión no válidos.'})
+
+    id = int(id)
+    personas = int(personas)
+    print("ID ",id)
+    restaurante = Restaurante.objects.filter(id=id).first()
+    if not restaurante:
+        return render(request, 'error.html', {'message': 'Restaurante no encontrado.'})
+
+    if request.method == 'GET':
+        
+            # Procesar las mesas
+         # Obtener la configuración de reservaciones y la opción de entrega/pickup
+        reservacion = Reservaciones_config.objects.filter(restaurante=restaurante.id).first()
+        pandd = Pickup_Delivery.objects.filter(restaurante=restaurante.id).first() 
+
+        # Procesar las mesas
+        reservacion.mesas = reservacion.mesas.split(',')
+        reservacion.mesas = [int(valor) for valor in reservacion.mesas]  
+        # Encontrar mesas disponibles
+        # Inicializar la lista de índices
+        index = []
+
+        # Encontrar mesas disponibles
+        for i in range(len(reservacion.mesas)):
+            if reservacion.mesas[i] >= int(personas):
+                index.append(i)  # Indica la posición de la lista reservacion.mesas
+        disponible=[]
+        # Recopilar fechas de reservaciones para las mesas disponibles
+        lista = {}
+        for idx in index:
+            # Obtener el número de mesa
+            # Obtener las fechas asociadas a la mesa
+            idx=int(idx)
+
+            fechas = Reservaciones_horario.objects.filter(restaurante=restaurante,mesa=idx).all()
+            if fechas:
+                for item in fechas:
+                    if ',' in item.status:
+                        status=item.status.split(',')
+                        for a in status:
+                            if a=='0':
+                                disponible.append(item.mesa)
+                        if disponible:
+                            fecha_formateada = item.fecha.strftime('%Y-%m-%d')
+                            fecha_formateada=str(fecha_formateada)
+                                
+                                # Asegurarse de que la clave exista en el diccionario
+                            if fecha_formateada not in lista:
+                                lista[fecha_formateada]=""  # Inicializar como lista si no existe
+                                # Agregar el número de mesa a la lista de esa fecha
+                            if lista[fecha_formateada] =="":
+                                lista[fecha_formateada]+=str(disponible[0])
+                            else:
+                                lista[fecha_formateada]+=','+str(disponible[0])
+                    else:
+                        if item.status == "0":  # Si la mesa está disponible
+                            fecha_formateada = item.fecha.strftime('%Y-%m-%d')
+                            fecha_formateada=str(fecha_formateada)
+                            
+                            # Asegurarse de que la clave exista en el diccionario
+                            if fecha_formateada not in lista:
+                                lista[fecha_formateada] =""  # Inicializar como lista si no existe
+                            # Agregar el número de mesa a la lista de esa fecha
+                            if lista[fecha_formateada] =="":
+                                lista[fecha_formateada]+=str(item.mesa)
+                            else:
+                                lista[fecha_formateada]+=','+str(item.mesa)
+                disponible.clear()
+        print("LISTA FECHAS Y MESAS:  ",lista)
+        # Obtener la fecha de la sesión
+        date = request.session.get('fecha')
+        date = datetime.strptime(date,'%Y-%m-%d').date()
+        print("DATE, ",date)
+        # Obtener la mesa elegida
+        table = request.session.get('mesa')
+        table=int(table)
+        print("MESA ELEGIDA ", table)
+        lista_horas=[]
+        # Obtener las horas asociadas a la mesa y la fecha
+        horas = Reservaciones_horario.objects.filter(restaurante=id,mesa=table,fecha=date).first()
+        print("HORAS OBJECT ",horas)
+        if horas:
+            print('HORAS ',horas.horas)
+            print("STATUs ",horas.status)
+            print("FECHA ",horas.fecha)
+            print("MESA ",horas.mesa)
+        
+            if ',' in horas.horas:
+                lista_horas=horas.horas.split(',')
+            else:
+                lista_horas=[horas.horas]
+
+            if ',' in horas.status:
+                lista_status=horas.status.split(',')
+            else:
+                lista_status=[horas.status]
+
+            print("LISTA HORA ",lista_horas)
+            print("STATUS ",lista_status)
+            for i in range(len(lista_status)):
+                if lista_status[i]=='1':
+                    del lista_horas[i]
+
+            print("lista horas ",lista_horas)
+            # Obtener el mayor número de mesas
+        mayor = max(reservacion.mesas) if reservacion.mesas else 0
+
+        return render(request, 'reser_hora.html', {
+            'restaurante': restaurante,
+            'delivery': pandd.active_delivery if pandd else False,
+            'pickup': pandd.active_pickup if pandd else False,
+            'reservaciones': reservacion.active if reservacion else False,
+            'mayor': mayor,            
+            'date': date.strftime('%Y-%m-%d'),
+            'persona': int(personas),
+            'personas': list(range(1, mayor + 1)),
+            'mesas': lista,
+            'horas':  lista_horas if lista_horas else False,
+        })
+
+    elif request.method == 'POST':
+        fecha = request.POST.get('fecha')
+        
+        fecha=str(fecha)
+        fecha=fecha.split('+')
+        mesas=str(fecha[1])
+        fecha=str(fecha[0])
+
+        personas2 = request.POST.get('personas')
+
+        mesa = request.POST.get('mesa')
+
+        if ',' in mesas:
+            mesas=mesas.split(',')
+            mesas=str(mesas[0])
+
+        hora = request.POST.get('hora')
+
+        fecha1=request.session.get("fecha")
+        mesa1=request.session.get("mesa")
+        print("FECHA POST ",fecha)
+        print("mesas POST ",mesas)
+        print("personass POST ",personas2,'\n')
+        print("FECHA SESSION ",fecha1)
+        print("mesas SESSION ",mesa1)
+        print("personass SESSION ",personas,'\n')
+
+        # Verificar si las personas o la fecha han cambiado
+        if int(personas)!=int(personas2) or fecha1 != fecha or mesa1!=mesas:
+            request.session['puestos'] = personas
+            request.session['fecha'] = fecha
+            request.session['mesa']=mesas
+            return redirect('reser_fecha')  # Asegúrate de que esta URL esté definida en tu urls.py
+
+        elif personas2 and fecha and mesas:
+            
+            mail=request.session.get('email')
+            if mail:
+                # Convertir la fecha
+                fecha = datetime.strptime(fecha, '%Y-%m-%d').date()
+
+                # Obtener las reservaciones
+                reservaciones = Reservaciones_horario.objects.filter(restaurante=restaurante.id, fecha=fecha, mesa=mesas).first()
+
+                # Inicializar lista
+                if reservaciones is None:
+                    lista = []  # Si no hay horas, inicializa como una lista vacía
+                else:
+                    # Dividir horas en una lista
+                    if isinstance(reservaciones.horas, str):
+                        lista = reservaciones.horas.split(',') if ',' in reservaciones.horas else [reservaciones.horas]
+                    else:
+                        lista = list(reservaciones.horas)  # Asegúrate de que esto sea correcto
+
+                # Encontrar el índice de la hora
+                index = None
+                for idx, item in enumerate(lista):
+                    if item == hora:
+                        index = idx
+                        break  # Salir del bucle una vez que se encuentra el índice
+
+                # Manejo del estado
+                if isinstance(reservaciones.status, str):
+                    status = reservaciones.status.split(',') if ',' in reservaciones.status else [reservaciones.status]
+                else:
+                    status = list(reservaciones.status)  # Asegúrate de que esto sea correcto
+
+                # Actualizar el estado
+                if index is not None:
+                    status[index] = '1'  # Cambiar a '1' para indicar que está ocupada
+                    reservaciones.status = ','.join(status)
+                reservaciones.save()
+                
+                cliente_restaurante = Restaurante.objects.filter(email=mail).first()
+                cliente = Cliente.objects.filter(email=mail).first()
+
+                nueva_reservacion=Reservacion_cliente(
+                    restaurante = restaurante,
+                    nombre=cliente.nombre if cliente else cliente_restaurante.nombre,
+                    identificacion=cliente.cedula if cliente else cliente_restaurante.rif,
+                    email= mail,
+                    telefono=cliente.telefono if cliente else cliente_restaurante.telefono,
+                    fecha=fecha,
+                    hora=hora,
+                    mesa=mesas,
+                    nro_personas=personas2,
+                )
+                nueva_reservacion.save()
+                return redirect('success')
+            else:
+                print("mesas",mesas)
+                request.session['puestos'] = personas
+                request.session['mesa'] = mesas
+                request.session['fecha'] = fecha
+                request.session['hora'] = hora
+                request.session['reservacion']=True
+
+                return redirect('registro_datos',id=restaurante.id)
+        else:
+            return render(request, 'reser_hora.html', {
+                'error': "Revise los datos",
+            })
+
+def VerReservaView(request,param1,param2,param3):
+    fecha=datetime.strptime(param1, '%Y-%m-%d').date() 
+    mesa=int(param2)
+    hora=datetime.strptime(param3, "%H:%M")
+
+    mail = request.session.get('email')
+    if not mail:
+        return render(request, 'usuario_sesion/login.html', {
+            'form': IniciarSesion(),
+            'error': 'Email o contraseña incorrecto'
+        })
+    else:
+        restaurante=Restaurante.objects.filter(email=mail).first()
+        if request.method=="GET":
+            reserva=Reservacion_cliente.objects.filter(restaurante=restaurante,fecha=fecha,hora=hora,mesa=mesa).first()
+            return render(request,'detail_reserva.html',{
+                'reserva': reserva,
+                'nombre':restaurante.nombre,
+            })
+
 def SuccessView(request):
     if request.method=="GET":
         return render(request,'success.html',{
-            'texto':'Su pedido ha sido procesado con exito',
+            'texto':'Operacion procesada con exito',
         })
 
 def obtener_ingredientes(codigo):

@@ -246,61 +246,62 @@ def PickupView(request, item):
 
 def Reservaciones(request, item):
     if request.method == 'GET':
-        try:
-
-            if request.session.get('restaurante')!=item:
+        if request.session.get('restaurante')!=item:
                 #vaciar las variables de sesion que arman los pedido cada que se entra a la pagina de inicio
-                if 'cantidad' in request.session: 
-                    del request.session['cantidad']
-                if 'type' in request.session:
-                    del request.session['type']
+            if 'cantidad' in request.session: 
+                del request.session['cantidad']
+            if 'type' in request.session:
+                del request.session['type']
 
-                if 'elegidos' in request.session:
-                    for i in request.session['elegidos'].split(","):
-                        if f'comentario_{i}' in request.session:
-                            del request.session[f'comentario_{i}']
-                    del request.session['elegidos']
-                #pickup
-                if 'cantidad2' in request.session: 
-                    del request.session['cantidad2']
+            if 'elegidos' in request.session:
+                for i in request.session['elegidos'].split(","):
+                    if f'comentario_{i}' in request.session:
+                        del request.session[f'comentario_{i}']
+                del request.session['elegidos']
+            #pickup
+            if 'cantidad2' in request.session: 
+                del request.session['cantidad2']
 
-                if 'elegidos2' in request.session:
-                    for i in request.session['elegidos2'].split(","):
-                        if f'2comentario_{i}' in request.session:
-                            del request.session[f'2comentario_{i}']
-                    del request.session['2elegidos']
-                #se borra la ubicacion ya que esto indica que el se coloco unaa ubicacion anteriror
-                if 'ubicacion' in request.session: 
-                        del request.session['ubicacion']
+            if 'elegidos2' in request.session:
+                for i in request.session['elegidos2'].split(","):
+                    if f'2comentario_{i}' in request.session:
+                        del request.session[f'2comentario_{i}']
+                del request.session['2elegidos']
+            #se borra la ubicacion ya que esto indica que el se coloco unaa ubicacion anteriror
+            if 'ubicacion' in request.session: 
+                del request.session['ubicacion']
             
-            if not request.session.get('ubicacion'):
-                return redirect('ubicacion')
-            else:
-                restaurante = Restaurante.objects.filter(id=item).first()
-                if not restaurante:
-                    raise Restaurante.DoesNotExist
+        restaurante = Restaurante.objects.filter(id=item).first()
+        if not restaurante:
+            raise Restaurante.DoesNotExist
                 
-                reservacion = Reservaciones_config.objects.filter(restaurante=restaurante.id).first()
-                pandd = Pickup_Delivery.objects.filter(restaurante=restaurante.id).first()  
-                menu = Menu.objects.filter(restaurante=restaurante.id)
-                
-                for item in menu:
-                    item.codigo = obtener_ingredientes(item.codigo) if item.codigo else []
+        reservacion = Reservaciones_config.objects.filter(restaurante=restaurante.id).first()
+        pandd = Pickup_Delivery.objects.filter(restaurante=restaurante.id).first()  
 
-                return render(request, 'reservaciones.html', {
+        reservacion.mesas = reservacion.mesas.split(',')
+        reservacion.mesas = [int(valor) for valor in reservacion.mesas if valor.isdigit()]  
+        # Obtener la mesa mayor
+        mayor = max(reservacion.mesas)
+        return render(request, 'reservaciones_s.html', {
                     'restaurante': restaurante,
-                    'menu': menu,
                     'delivery': pandd.active_delivery if pandd else False,
                     'pickup': pandd.active_pickup if pandd else False,
-                    'reservaciones': reservacion.active if reservacion else False
-                })
-        except Restaurante.DoesNotExist:
-                return render(request, 'reservaciones.html', {
-                    'error': "El restaurante no se encontró.",
-                })
-        except Exception as e:
-                return render(request, 'reservaciones.html', {
-                    'error': f"Que extraño, no hay coincidencias. Recargue la página por favor. Error: {e}"
+                    'reservaciones': reservacion.active if reservacion else False,
+                    'mayor':mayor,
+                    'personas': list(range(1, mayor + 1)),
+        })
+    elif request.method == 'POST':
+        
+        personas=request.POST.get('personas')
+        print("PERSONAS: ",personas)
+        if personas:
+            request.session['restaurante']=item
+            request.session['puestos']=personas
+            request.session.save()
+            return redirect('reser_fecha')
+        else:
+            return render(request, 'reservaciones_s.html', {
+                    'error': "Revise el formulario",
                 })
         
 def Agregar_Pedido_View(request, id, item):

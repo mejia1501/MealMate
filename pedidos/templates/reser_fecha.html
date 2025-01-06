@@ -1,0 +1,79 @@
+{% extends 'nav.html' %}
+{% load custom_filters_principal %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+   
+    <title>MealMate</title>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>{{ restaurante.nombre }}</h1>
+        <br>
+        <ul>
+            <li>Desde {{ restaurante.fundacion }}</li>
+            <li>Dirección {{ restaurante.direccion }}</li>
+            <li>Teléfono {{ restaurante.telefono }}</li>
+        </ul>
+        <div class="btn-group" role="group" aria-label="Basic outlined example">
+            {% if delivery %}
+                <a href="{% url 'presentacion_one' restaurante.id %}"><button type="button" class="btn btn-outline-primary">Delivery</button></a>
+            {% endif %}
+            {% if pickup %}
+                <a href="{% url 'presentacion_three' restaurante.id %}"><button type="button" class="btn btn-outline-primary">Pickup</button></a>
+            {% endif %}
+            {% if reservaciones %}
+                <button disabled type="button" class="btn btn-outline-primary">Reservaciones</button>
+            {% endif %}
+        </div>
+        <br><br>
+
+        <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
+            <symbol id="info-fill" viewBox="0 0 16 16">
+              <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/>
+            </symbol>
+          </svg>
+          <div class="alert alert-primary d-flex align-items-center" role="alert">
+            <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Info:">
+              <use xlink:href="#info-fill"/>
+            </svg>
+            <div>
+                Para reservas superiores a {{ mayor }} personas contactar al teléfono: {{ restaurante.telefono }}
+            </div>
+          </div>
+          
+        <br>
+        <div  class="progress" role="progressbar" aria-label="Example 1px high" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100" style="height: 3px">
+            <div class="progress-bar" style="width: 66.66%"></div>
+          </div>
+        <br>
+        <form method="post">
+            {% csrf_token %}
+            <h6>Por favor, seleccione el número de personas para la mesa de su reservación.</h6>
+            <select class="form-select" aria-label="Default select example" name="personas">
+            {% for i in personas %}
+                <option {% if i == persona %} selected {% endif %} value="{{ i }}" id="{{ mayor }}">
+                    {{ i }} Personas
+                </option>
+            {% endfor %}
+        </select>
+        <div id="mesasContainer">
+            {% for fecha,mesas in mesas.items %}
+                
+                <input type="radio" class="btn-check" autocomplete="off" name="fecha" value="{{ fecha }}+{{ mesas }}" id="fecha_{{ forloop.counter }}" required>
+                <label class="btn" for="fecha_{{ forloop.counter }}">
+                    {{ fecha }}
+                </label>
+                <br>
+            {% endfor %}
+        </div>
+    <br>
+    <input type="submit" value="Continuar">
+</form>
+</body>
+</html>
+{% endblock %}

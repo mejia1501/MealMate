@@ -1,4 +1,5 @@
 from django.shortcuts import render,redirect
+from django.urls import reverse
 from .models import Reservaciones_config,Pickup_Delivery,Reservaciones_horario
 from .forms import CheckPickForm,CheckReserForm,CheckDelivForm
 from usuario_sesion.forms import IniciarSesion
@@ -428,24 +429,52 @@ def HorariosMesasViews(request):
             check = CheckReserForm(initial={
                 'active': reservacion.active,
             })
+            # Obtener las reservaciones ordenadas por fecha
+            instance = Reservaciones_horario.objects.filter(restaurante=restaurante.id).order_by('fecha')
+            fecha_ayer = timezone.now().date() - datetime.timedelta(days=1)
 
-            instance = Reservaciones_horario.objects.filter(restaurante=restaurante.id)
-
+            # Si no hay reservas, inicializa una nueva instancia
             if not instance.exists():
                 instance = Reservaciones_horario(restaurante=restaurante)
-                horarios = []
-            else:           
                 horarios = {}
+            else:
+                # Eliminar reservas que son más antiguas que ayer
+                Reservaciones_horario.objects.filter(fecha__lt=fecha_ayer).delete()
+
+                # Inicializar un diccionario para almacenar horarios
+                horarios = {}
+
+                # Iterar sobre las reservaciones
                 for reservacion in instance:
                     fecha = reservacion.fecha.strftime('%Y-%m-%d')
+                    fecha = str(fecha)
+
+                    # Inicializar la lista de horas y el estado de eliminación
                     if fecha not in horarios:
                         horarios[fecha] = []
+
+                    # Procesar el estado de la reservación
+                    if ',' in reservacion.status:
+                        status = reservacion.status.split(',')
+                        status = [bool(int(valor)) for valor in status]
+                    else:
+                        status = [bool(int(reservacion.status))]  # Asegúrate de que esto sea correcto
+
+                    # Determinar si se debe eliminar
+                    eliminar = True  # Asumimos que se debe eliminar a menos que se encuentre un True
+                    for i in status:
+                        if i:  # Si i es True
+                            eliminar = False  # No eliminar si hay al menos un True
+                            break  # Salir del bucle si encontramos un True
+
+                    # Crear la lista de horas y su estado
+                    horas_status = list(zip(reservacion.horas.split(','), status))
                     horarios[fecha].append({
                         'mesa': reservacion.mesa,
-                        'horas': reservacion.horas.split(','),
-                        'fecha_str': str(fecha)
-                    })  
-                    
+                        'horas_status': horas_status,
+                        'eliminar': eliminar,
+                    })
+
             return render(request, 'horarios_mesas.html', {
                 'check': check,
                 'horarios': horarios,
@@ -531,6 +560,15 @@ def HorarioNew(request):
                         if hora not in horas_existentes:
                             horas_existentes.append(hora)
                             instance.horas = ",".join(horas_existentes)
+                            if instance.status:
+                                status_existentes = instance.status.split(',')
+                            else:
+                                status_existentes = []
+                            # Agrega un nuevo estado (0 en este caso)
+                            status_existentes.append('0')  # O el valor que desees agregar
+
+                            # Actualiza el campo status
+                            instance.status = ",".join(status_existentes)
                             instance.save()
                     else:
                         instance2 = Reservaciones_horario(
@@ -538,12 +576,13 @@ def HorarioNew(request):
                             fecha=fecha,
                             horas=hora,
                             mesa=mesa,
+                            status="0",#0=sin ocupar reserva
                         )
 
                         instance2.save()
                     
                     # Devuelve una respuesta JSON indicando éxito
-                    return JsonResponse({'success': True, 'redirect_url': 'horarios_mesas'})
+                    return JsonResponse({'success': True, 'redirect_url': reverse('horarios_mesas')})
                 except Exception as e:
                     return JsonResponse({'success': False, 'error': f'Error al guardar los cambios: {str(e)}'})
             else:
