@@ -1,11 +1,14 @@
 {% extends 'nav.html' %}
-
+{% load static %}
 {% block content %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
     <title>Perfil</title>
 </head>
 <body>
@@ -18,12 +21,35 @@
    <a href="{% url 'activate_d' %}"><button id="tab-4" name="tab" value="servicios">Servicios</button></a>
 
     <!-- Formulario para editar perfil -->
+   
+    <h1>{{ nombre }}</h1>
     <form method="POST" action="{% url 'editar-perfil' %}"> 
         {% csrf_token %} 
         {{ form.as_p }} 
+        <br>Fundación: 
+        <input type="date" 
+               {% if date %} value="{{ date }}"{% endif %} 
+               name="fundacion" 
+               max="{{ hoy }}">
+        
+        <h2>Marca la ubicación del restaurante</h2>
+        <!-- Tamaño del mapa -->
+        <div id="map" style="height: 400px; width: 400px;"></div>
+        
+        <!-- Campos ocultos para latitud y longitud -->
+        <input type="hidden" id="lat" name="latitude" {% if latitud %} value="{{ latitud }}" {% endif %}>
+        <input type="hidden" id="long" name="longitude" {% if longitud %} value="{{ longitud }}" {% endif %}>
+        
         <button type="submit">Guardar</button> 
     </form>
+    
+    <!-- Incluir el archivo JavaScript -->
+    <script>
+        var redIconUrl = '{% static "img/leaf-red.png" %}';
+        var shadowIconUrl ='{% static "img/leaf-shadow.png" %}';
+    </script>
+    <script src="{% static 'js/mapa.js' %}"></script> <!-- Asegúrate de que la ruta sea correcta -->
+    
 </body>
 </html>
-
 {% endblock %}

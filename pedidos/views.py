@@ -8,6 +8,7 @@ from .forms import Datos_Form,PagoMovilForm,PagoPaypalForm,PagoZelleForm,Efectiv
 from django.utils import timezone
 from datetime import datetime
 import csv
+import requests
 # Create your views here.
 
 def read_banks(value):
@@ -77,6 +78,7 @@ def DetailsDelivery(request,nro):
                         'cantidad': float(cant),  # Asegúrate de que sea float
                         'comentario': comentario,
                         'precio': float(comida.precios) * float(cant),
+                        'bolivar':cambio_dolar(float(comida.precios) * float(cant)),
                     }
                 else:
                     # Manejar el caso donde no se encuentra la comida
@@ -87,11 +89,13 @@ def DetailsDelivery(request,nro):
                         'cantidad': float(cant),  # Asegúrate de que sea float
                         'comentario': comentario,
                         'precio':0,
+                        'bolivar':0,
                     }
 
             total = sum(item['precio'] for item in detalles_items.values())  # Sumar todos los totales
             iva = total + (total * 0.16)  # Total con IVA
-
+            bolivares=cambio_dolar(iva)
+            bolivares=float(bolivares)
             #pago,nro=nro de pedido
 
             pago_nacional=PagoMovil.objects.filter(pedido=nro).first()
@@ -130,6 +134,7 @@ def DetailsDelivery(request,nro):
                 'detalles':detalles_items,
                 'subtotal': round(total, 2),
                 'iva': round(iva, 2),
+                'bolivares': round(bolivares,2),
                 'pago':pago,
                 'text':text,
                 'diccionario': diccionario,
@@ -194,6 +199,9 @@ def DetailsPickup(request,nro):
                 if comida:  # Verificar que comida no sea None
                     # Agregar los detalles a la lista
                     #i es la comida pedida 1
+                    bolivar=cambio_dolar(float(comida.precios) * float(cant))
+                    bolivar=float(bolivar)
+                    bolivar=round(bolivar,2)
                     detalles_items[i] = {
                         'item': elegido,
                         'comida': comida.comida,
@@ -201,6 +209,7 @@ def DetailsPickup(request,nro):
                         'cantidad': float(cant),  # Asegúrate de que sea float
                         'comentario': comentario,
                         'precio': float(comida.precios) * float(cant),
+                        'bolivar':bolivar,
                     }
                 else:
                     # Manejar el caso donde no se encuentra la comida
@@ -211,11 +220,13 @@ def DetailsPickup(request,nro):
                         'cantidad': float(cant),  # Asegúrate de que sea float
                         'comentario': comentario,
                         'precio':0,
+                        'bolivar':0,
                     }
 
             total = sum(item['precio'] for item in detalles_items.values())  # Sumar todos los totales
             iva = total + (total * 0.16)  # Total con IVA
-
+            bolivares=cambio_dolar(iva)
+            bolivares=float(bolivares)
             #pago,nro=nro de pedido
 
             pago_nacional=PagoMovil.objects.filter(pedido=nro).first()
@@ -254,6 +265,7 @@ def DetailsPickup(request,nro):
                 'detalles':detalles_items,
                 'subtotal': round(total, 2),
                 'iva': round(iva, 2),
+                'bolivares': round(bolivares,2),
                 'pago':pago,
                 'text':text,
                 'diccionario': diccionario,
@@ -486,12 +498,15 @@ def PagoMovilView(request, id):
             'email': request.session.get('email'), 
             'telefono': request.session.get('telefono')
         })
-
+        bolivares=cambio_dolar(total)
+        bolivares=float(bolivares)
+        print(bolivares)
         return render(request, 'pago_movil.html', {
             'item': restaurante.id,
             'pago_restaurante': pago_restaurante,
             'form': form,
             'total': total,
+            'bolivares':round(bolivares,2),
             'rif': restaurante.rif,
             'registro': bool(request.session.get('registro')),
             'pedidos': bool(request.session.get('type')),
@@ -525,11 +540,12 @@ def PagoMovilView(request, id):
                             notas2.append(comentario2)
                  # Al registrar un nuevo pedido
                 # Crear una nueva instancia de Pedido_Delivery
+
                 if request.session.get('type')==False:#True=pickup, False=delivery
                     nuevo_pedido = PedidoModel(
                         id_nro=restaurante,
                         nro_items=request.session.get('elegidos'),
-                        fecha=datetime.datetime.combine(fecha_actual, datetime.datetime.strptime(hora, '%H:%M').time()),
+                        fecha=datetime.combine(fecha_actual, datetime.strptime(hora, '%H:%M').time()),
                         notas=';'.join(notas),
                         cantidades=request.session.get('cantidad'),
                         nombre=request.session.get('nombre'),
@@ -546,7 +562,7 @@ def PagoMovilView(request, id):
                     nuevo_pedido = PedidoModel(
                         id_nro=restaurante,
                         nro_items=request.session.get('elegidos2'),
-                        fecha=datetime.datetime.combine(fecha_actual, datetime.datetime.strptime(hora, '%H:%M').time()),
+                        fecha=datetime.combine(fecha_actual, datetime.strptime(hora, '%H:%M').time()),
                         notas=';'.join(notas2),
                         cantidades=request.session.get('cantidad2'),
                         nombre=request.session.get('nombre'),
@@ -1285,3 +1301,29 @@ def obtener_ingredientes(codigo):
         if consulta:
             ingredientes.append(consulta[0])
     return (ingredientes)
+
+
+def cambio_dolar(monto):
+    monto = float(monto)
+
+    url = 'https://pydolarve.org/api/v1/dollar/conversion'
+    params = {
+        'type': 'USD',
+        'value': monto,
+        'page': 'bcv',
+        'monitor': 'usd'
+    }
+    headers = {
+        'Content-Type': 'application/json'
+    }
+
+    response = requests.get(url, params=params, headers=headers)
+    
+    # Check if the response was successful
+    if response.status_code == 200:        
+        return (response.text)  # Adjust this key based on the actual response structure
+    else:
+        print(f"Error: {response.status_code}")
+        return None
+
+    

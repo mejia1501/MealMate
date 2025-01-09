@@ -1,21 +1,27 @@
 from django.db import models
 from django.utils import timezone
+from datetime import date
 
 # Create your models here.
 
 class Restaurante(models.Model):
     id=models.AutoField(primary_key=True)
-    nombre = models.CharField(max_length=20)
-    password = models.CharField(max_length=18)
-    rif = models.CharField(max_length=20)
-    email = models.EmailField(max_length=254)
-    telefono = models.CharField(max_length=11)
-    direccion = models.CharField(max_length=200)
-    fundacion = models.DateField()
+    username=models.CharField(max_length=150,default="")
+    nombre = models.CharField(max_length=20,default="")
+    password1 = models.CharField(max_length=18,default="")
+    password2=models.CharField(max_length=18,default="")
+    rif = models.CharField(max_length=20,default="")
+    email = models.EmailField(max_length=254,default="")
+    telefono = models.CharField(max_length=11,default="")
+    direccion = models.CharField(max_length=200,default="")
+    fundacion = models.DateField(default=date.today)
     last_login = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
     date_joined = models.DateTimeField(default=timezone.now)
     logo=models.CharField(max_length=100,default='default_logo.jpg')
+
+    USERNAME_FIELD = 'username'  # Campo que se usará para el inicio de sesión
+    REQUIRED_FIELDS = ['email']
     def __str__(self): return self.nombre
 
 class Ingredientes(models.Model):

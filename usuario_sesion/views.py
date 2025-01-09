@@ -20,7 +20,8 @@ def iniciar_sesion(request):
             'form': IniciarSesion(),
             'error': 'Email y contraseña son requeridos.'
         })
-    restaurante = Restaurante.objects.filter(email=email, password=password).first()
+    
+    restaurante = Restaurante.objects.filter(email=email, password1=password,password2=password).first()
     if restaurante:
         request.session['email'] = restaurante.email
         request.session['type']=True
@@ -72,9 +73,9 @@ def registro_restaurante(request):
                         rif=form.cleaned_data["rif"],
                         email=form.cleaned_data["email"],
                         telefono=form.cleaned_data["telefono"],
-                        fundacion=form.cleaned_data["fundacion"],
-                        logo=form.cleaned_data["logo"],
-                        password=form.cleaned_data["password1"]
+                        password1=form.cleaned_data["password1"],
+                        password2=form.cleaned_data["password2"],
+                        username=form.cleaned_data["username"],
                     )
                     # hash de django con la contraseña
                     restaurante.is_active=True
@@ -82,10 +83,10 @@ def registro_restaurante(request):
                     request.session['email'] = restaurante.email
                     request.session['type']=True
                     return redirect("perfil-restaurante")
-                except:
+                except Exception as e:
                     return render(request, 'user2/registro_restaurante.html', {
                         'form': form,
-                        'error': 'El usuario ya existe'
+                        'error': f'El usuario ya existe, {e}',
                     })
             else:
                 return render(request, 'user2/registro_restaurante.html', {
@@ -113,7 +114,8 @@ def registro_cliente(request):
                         cedula=form.cleaned_data["cedula"],
                         email=form.cleaned_data["email"],
                         telefono=form.cleaned_data["telefono"],
-                        password=form.cleaned_data["password1"]
+                        password1=form.cleaned_data["password1"],
+                        password2=form.cleaned_data["password2"],
                     )
                     cliente.is_active = True  
                     cliente.save()

@@ -11,6 +11,7 @@ def ayuda(request):
     return render(request,'ayuda.html')
 
 def InicioView(request):
+
     if request.method == "GET":
         return render(request, 'home.html', {
             'busqueda': BarraBusqueda(),
@@ -215,11 +216,12 @@ def PickupView(request, item):
             for menu_item in menu:
                 menu_item.codigo = obtener_ingredientes(menu_item.codigo)
             print("Elegidos 2: ",request.session.get('elegidos2'))
-            if request.session.get('elegidos2')!="":
+            if 'elegidos2' in request.session:
                 activo=True
             else:
                 activo=False
-
+            if restaurante.direccion!="":
+                coordenadas=restaurante.direccion.split('+')
             return render(request, 'pickup.html', {
                 'restaurante': restaurante, 
                 'menu': menu,
@@ -228,6 +230,8 @@ def PickupView(request, item):
                 'pickup': pandd.active_pickup if pandd else False,
                 'reservaciones': reservacion.active if reservacion else False,
                 'activo': activo,
+                'latitud': str(coordenadas[0]),
+                'longitud': str(coordenadas[1]),
             })
 
         except Restaurante.DoesNotExist:
@@ -462,7 +466,7 @@ def PedidosView(request,item):
         return render(request, 'pedidos.html', {
             'pedidos_dict': detalles_items,
             'restaurante': restaurante.nombre,
-            'id': restaurante.id,
+            'id': str(restaurante.id),
             'ubicacion':request.session.get("ubicacion"),
             'total': str(total),
             'iva': iva,
@@ -677,7 +681,9 @@ def PedidosView2(request,item):
 
         # Verificar si 'elegidos' y 'cantidad' son válidos
         if elegidos == 'No disponible' or cantidad == 'No disponible':
-            return render(request, 'pedidos.html', {
+            return render(request, 'pedidos2.html', {
+                'id': str(restaurante.id),
+                'iva': 0,
                 'error': 'No hay elementos disponibles en la sesión.',
             })
 
@@ -740,7 +746,7 @@ def PedidosView2(request,item):
         return render(request, 'pedidos2.html', {
             'pedidos_dict': detalles_items,
             'restaurante': restaurante.nombre,
-            'id': restaurante.id,
+            'id': str(restaurante.id),
             'total': total,
             'iva': iva,
         })

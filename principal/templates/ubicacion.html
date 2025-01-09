@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <title>MealMate</title>
 </head>
 <body>
@@ -15,21 +17,51 @@
         <a href="{% url 'home' %}">x</a>    
     {% endif %}
 
-    <h3>Ubicacion de entrega del pedido</h3>
-    <form method="post">
-        {% csrf_token %}
-        {{ form }}
-        <input type="submit" value="Confirmar">
-    </form>
+    <br>
     
-    {% if error %}
-    <div
-        class="alert alert-danger"
-        role="alert"
-    >
-        <strong>Error</strong> {{ error }}
-    </div>
-    {% endif %}
+    <h2>Marca tu ubicacion</h2>
+
+    <!--Tamaño del mapa-->
+    <div id="map" style="height: 600px; width: 600px;"></div>
+
+    <script>
+        var map; // Definir la variable map aquí
+        var defaultCoordinates = [10.492886, -66.780632]; // Coordenadas por defecto
+    
+        navigator.geolocation.getCurrentPosition((position) => {
+            // Inicializar el mapa con la posición actual
+            map = L.map('map').setView([position.coords.latitude, position.coords.longitude], 17);
+            
+            // Añadir la capa de mosaico después de inicializar el mapa
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(map);
+    
+            // Añadir el evento de clic en el mapa
+            map.on('click', onMapClick);
+        }, (error) => {
+            console.error("Error al obtener la ubicación: ", error);
+            alert("No se pudo obtener la ubicación. Usando coordenadas por defecto.");
+    
+            // Inicializar el mapa con las coordenadas por defecto
+            map = L.map('map').setView(defaultCoordinates, 18);
+    
+            // Añadir la capa de mosaico después de inicializar el mapa
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(map);
+    
+            // Añadir el evento de clic en el mapa
+            map.on('click', onMapClick);
+        });
+    
+        function onMapClick(e) {
+            alert("Hiciste clic en el mapa en " + e.latlng);
+        }
+    </script>
+
 
 </body>
 </html>

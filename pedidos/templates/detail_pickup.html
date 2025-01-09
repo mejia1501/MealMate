@@ -115,7 +115,7 @@
                             {{ item.comentario }}
                         </td>
                         <td>
-                            $ {{ item.precio }}
+                            $ {{ item.precio }}  /  Bs. {{ item.bolivar }}
                         </td>
                     </tr>              
                 {% endfor %}
@@ -141,7 +141,7 @@
                 </tr>
                 <tr class="table-info"> 
                     <td title="Sub-total+(I.V.A.*sub-total)"><b>Total</b></td>
-                    <td>$ {{ iva }}</td>
+                    <td>$ {{ iva }}  /  Bs. {{ bolivares }} </td>
                 </tr>
             </tbody>
             <tfoot>

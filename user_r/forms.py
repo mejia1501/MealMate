@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import ModelForm
-from .models import Restaurante,Ingredientes,Pago,Zelle,Paypal,Menu
+from .models import Restaurante,Ingredientes,Zelle,Paypal,Menu
 import csv
 #Lee los bancos registrados en el archivo csv y devuelve una lista con ellos
 def read_banks():
@@ -17,20 +17,23 @@ def read_banks():
     return banks
 
 class CuentaRestaurante(ModelForm):
-     class Meta:
+    class Meta:
         model = Restaurante
-        fields = ['nombre', 'telefono', 'direccion', 'fundacion', 'logo']
+        fields = ['nombre','username','rif','telefono', 'logo']
         widgets = { 
-            'fundacion': forms.DateInput(attrs={'type': 'date'}),
-            'telefono': forms.TextInput(attrs={'maxlength': 11}),
-            'nombre': forms.TextInput(attrs={'maxlength': 20}),
-            'logo': forms.TextInput(attrs={'maxlength': 100}),
-        }
+                'telefono': forms.TextInput(attrs={'maxlength': 11}),
+                'nombre': forms.TextInput(attrs={'maxlength': 20}),
+                'logo': forms.TextInput(attrs={'maxlength': 100}),
+                'rif': forms.TextInput(attrs={'maxlength': 20,'label': 'RIF',}),
+                'username': forms.TextInput(attrs={'maxlength': 150,'label': 'RIF',}),
+            }
+        
 #formulario para actualizar los platos y crearlos
 class Items(forms.ModelForm):
     plato = forms.CharField(
         max_length=54,
         label="Plato",
+        required=True,
         widget=forms.TextInput(attrs={'class': 'form-control'})
     )
     precio = forms.DecimalField(
@@ -39,13 +42,21 @@ class Items(forms.ModelForm):
         max_digits=6,
         decimal_places=2,
         label="Precio",
+        required=True,
         widget=forms.NumberInput(attrs={'class': 'form-control'})
     )
     #hacer una lista tipo select con css con casillas checkbox y con una barra de busqueda
-    ingredientes = forms.ModelMultipleChoiceField(
-        queryset=Ingredientes.objects.all(),
+    ingrediente = Ingredientes.objects.all().order_by('ingrediente')
+    OPTIONS = []
+
+    for item in ingrediente:
+        OPTIONS.append((item.codigo, item.ingrediente))
+        
+    ingredientes = forms.MultipleChoiceField(
+        widget=forms.SelectMultiple,
+        choices=OPTIONS,
+        required=True,
         label="Seleccione ingredientes",
-        to_field_name='codigo'
     )
     class Meta:
         model=Menu

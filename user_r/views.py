@@ -3,7 +3,7 @@ from usuario_sesion.forms import IniciarSesion
 from .forms import CuentaRestaurante,Items,PagoForm,ZelleForm,PaypalForm,AddIngredients
 from .models import Restaurante,Menu,Ingredientes,Pago,Paypal,Zelle
 from django.contrib import messages
-
+from datetime import date
 # Create your views here
 
 #enviar datos a los perfiles
@@ -22,10 +22,20 @@ def cuenta(request):
         form=CuentaRestaurante(instance=restaurante)
         for field in form.fields.values():#lee cada valor del form
             field.widget.attrs['readonly'] = True#readonly,solo mostrar
+        if restaurante.direccion!="":
+            coordenadas=restaurante.direccion.split('+')
+        #Manejo de la fecha de fundación
+            if restaurante.fundacion:
+                date_fundacion = restaurante.fundacion.isoformat
+            else:
+                date_fundacion = None
 
         return render(request, 'perfil_restaurante.html', {
             'nombre':restaurante.nombre,
             'form':form,
+            'latitud': str(coordenadas[0]),
+            'longitud': str(coordenadas[1]),
+            'date': date_fundacion if date_fundacion else False,
         })
 
     return render(request, 'usuario_sesion/login.html', {
@@ -41,18 +51,46 @@ def ModificarCuenta(request):
     #se obtienen los datos correspondientes al usuario loguado y se muestran en pantalla
     if request.method == 'GET':
         if restaurante and restaurante.is_active:
+            # Verificar si la dirección no es None o vacía
+            if restaurante.direccion:
+                coordenadas = restaurante.direccion.split('+')
+                # Asegurarse de que hay al menos dos coordenadas
+                latitud = str(coordenadas[0]) if len(coordenadas) > 0 else None
+                longitud = str(coordenadas[1]) if len(coordenadas) > 1 else None
+            else:
+                latitud = None
+                longitud = None
+
+            # Manejo de la fecha de fundación
+            if restaurante.fundacion:
+                date_fundacion = restaurante.fundacion.isoformat
+            else:
+                date_fundacion = None
+
             form = CuentaRestaurante(instance=restaurante)
+
             return render(request, 'editar_perfil.html', {
                 'form': form,
+                'latitud': latitud,
+                'longitud': longitud,
+                'date': date_fundacion if date_fundacion else False,
+                'hoy': date.today().isoformat,
             })
 #se modifican los datos del usuario logueado segun lo que envie con el formulario CuentaRestaurante
     elif request.method == 'POST':
         if restaurante and restaurante.is_active:
             form = CuentaRestaurante(request.POST, instance=restaurante)
+            latitude = request.POST.get('latitude')
+            longitude = request.POST.get('longitude')
+            fundacion = request.POST.get('fundacion')
             #verificar que el formulario no tenga errores
-            if form.is_valid():
+            if form.is_valid() and latitude and  longitude and fundacion:
                 try:
+                    restaurante.direccion=str(latitude+'+'+longitude)
+                    restaurante.fundacion=fundacion
+                    restaurante.save()
                     form.save()#guardar formulario
+                    print("FUNCIONA")
                     return redirect('perfil-restaurante')#rederigir al usuario a su perfil luego de modificarlo
                 except ValueError:
                     return render(request, 'editar_perfil.html', {
@@ -71,14 +109,18 @@ def ModificarCuenta(request):
 def CrearMenu(request):
     mail = request.session.get('email')
     if not mail:
+
         return render(request, 'usuario_sesion/login.html', {
             'form': IniciarSesion(),
             'error': 'Email o contraseña incorrecto'
         })
     if request.method == 'GET':
+        #entorno=1=crear, entorno=0=modificar
+        request.session['entorno']=0
         return render(request, 'crear_comida.html', {
             'form': Items(),
             'code':'0',
+
         })
     else:
         form = Items(request.POST)
@@ -106,6 +148,8 @@ def CrearMenu(request):
             })
 
 def MostrarMenu(request):
+    if 'entorno' in request.session:
+        del request.session['entorno']
     mail = request.session.get('email')
     if not mail:
         return render(request, 'usuario_sesion/login.html', {
@@ -165,7 +209,7 @@ def MostrarMenu(request):
         })
 
 #se modifica el item que el usuario selecciono
-def ModificarMenu(request, item):
+def ModificarMenu(request,item):
     mail = request.session.get('email')
     
     if not mail:
@@ -178,41 +222,45 @@ def ModificarMenu(request, item):
     if not restaurante:
         return render(request, 'menu.html', {'error': 'Restaurante no encontrado.'})
 #envio de datos a la pagian editar menu con la estructura del form Menu y con informacion inicial proveniente del modelo Menu
-    if request.method == "GET":
-        comida = Menu.objects.filter(item=item,restaurante=restaurante.id).first()
-        if not comida:
+    comida1 = Menu.objects.filter(item=item,restaurante=restaurante.id).first()
+    if not comida1:
             return render(request, 'menu.html', {'error': 'Menú no encontrado.'})
         
-        codigos = comida.codigo.split(',')
+    codigos = comida1.codigo.split(',')
         # Convertir cada elemento de la lista a un número
-        codigos_numericos = [int(codigo) for codigo in codigos]
-        form = Items(initial={ 
-            'plato': comida.comida, 
-            'precio': comida.precios,
-            'ingredientes': Ingredientes.objects.filter(codigo__in=codigos_numericos)
+    codigos_numericos = [int(codigo) for codigo in codigos]
+    form = Items(initial={ 
+            'plato': comida1.comida, 
+            'precio': comida1.precios,
+            'ingredientes': codigos_numericos,
             })
-        return render(request, 'editar_menu.html', {'form': form,'code':comida.item})
+    if request.method == "GET":
+        #entorno=1=crear, entorno=0=modificar
+        request.session['entorno']=0
+        return render(request, 'editar_menu.html', {'form': form,'code':item})
 
     if request.method == "POST":
         try:
-            comida = Menu.objects.filter(item=item,restaurante=restaurante.id).first()
+            comida = Menu.objects.filter(item=int(item),restaurante=restaurante.id).first()
             if not comida:
                 return render(request, 'menu.html', {'error': 'Comida no encontrado.'})
             
-            form = Items(request.POST)
-            if form.is_valid():
-                comida.comida = form.cleaned_data['plato']
-                comida.precios = form.cleaned_data['precio']
-                ingredientes = form.cleaned_data['ingredientes']
+            form2 = Items(request.POST)
+            if form2.is_valid():
+                comida.comida = form2.cleaned_data['plato']
+                comida.precios = form2.cleaned_data['precio']
+                ingredientes = form2.cleaned_data['ingredientes']
+                print("COMIDA OBJECCT ", comida)
+                print("INGREDIENTES ",ingredientes)
                 # Convertir explícitamente cada código de ingrediente a una cadena
-                comida.codigo = ",".join([str(ingrediente.codigo) for ingrediente in ingredientes])
+                comida.codigo = ",".join([str(ingrediente) for ingrediente in ingredientes])
                 comida.save()
                 return redirect('menu')
             else:
-                return render(request, 'editar_menu.html', {'form': form, 'error': 'Formulario no válido'})
+                return render(request, 'editar_menu.html', {'form': form, 'error': 'Formulario no válido','code':comida1.item})
 
         except Exception as e:
-            return render(request, 'editar_menu.html', {'form': form, 'error': f'Error al guardar los cambios: {str(e)}'})
+            return render(request, 'editar_menu.html', {'form': form, 'error': f'Error al guardar los cambios: {str(e)}','code':comida1.item})
 
     return render(request, 'menu.html', {'error': 'Método no permitido'})
 
@@ -269,12 +317,13 @@ def NuevoIngrediente(request,nro):
                 )
                 new.save()
                 messages.success(request, 'Ingrediente creado con éxito.')
-                int(nro)
-                if nro==0:
+                nro=int(nro)
+                #entorno=1=crear, entorno=0=modificar
+                if int(request.session.get('entorno'))==1:
                     return redirect('crear_menu')
                 else:
-                    str(nro)
-                    return redirect(f'perfil/menu/editar/{nro}/')
+                    nro=str(nro)
+                    return redirect('editar_menu',item=nro)
 
         else:
             # Si el formulario no es válido, puedes volver a renderizar la página con errores
