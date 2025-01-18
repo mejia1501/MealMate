@@ -1,10 +1,11 @@
 from django.shortcuts import render,redirect
 from django.urls import reverse
-from .models import Reservaciones_config,Pickup_Delivery,Reservaciones_horario
+from .models import Reservaciones_config,Pickup_Delivery,Reservaciones_horario,Reservacion_cliente
 from .forms import CheckPickForm,CheckReserForm,CheckDelivForm
 from usuario_sesion.forms import IniciarSesion
 from user_r.models import Restaurante
 from pedidos.models import PedidoModel
+from principal.views import obtener_direccion
 from datetime import date,datetime
 from pedidos.models import PedidoModel
 from django.http import JsonResponse
@@ -184,7 +185,12 @@ def DeliveryView(request):
     if delivery and delivery.active_delivery:
         if request.method == 'GET':
             # Obtener los pedidos del restaurante
-            pedidos = PedidoModel.objects.filter(id_nro=restaurante.id,is_pickup=False,is_delivery=True).all()
+            
+            pedidos = PedidoModel.objects.filter(
+                id_nro=restaurante.id,
+                is_pickup=False,
+                is_delivery=True
+            ).order_by('status')
 
             # Obtener la fecha actual
             fecha_actual = timezone.now()
@@ -193,6 +199,8 @@ def DeliveryView(request):
                 # Verificar si la fecha del pedido es más antigua que un día
                 if pedido.fecha < fecha_actual - datetime.timedelta(days=1):
                     pedido.delete()  # Eliminar el pedido de la base de datos
+                pedido.ubicacion=pedido.ubicacion.split('+')
+                pedido.ubicacion=obtener_direccion(pedido.ubicacion[0],pedido.ubicacion[1])
             check = CheckDelivForm(initial={
                 'active_delivery': delivery.active_delivery,
             })
@@ -200,6 +208,12 @@ def DeliveryView(request):
             # Formatear los tiempos para el input de tipo time
             inicio = delivery.d_start_time.strftime('%H:%M') if delivery.d_start_time else ''
             cierre = delivery.d_end_time.strftime('%H:%M') if delivery.d_end_time else ''
+            if "+" in restaurante.direccion:
+                distancia=restaurante.direccion.split("+")
+                if len(distancia)>2:
+                    distancia=distancia[2]
+            else:
+                distancia=0
 
             return render(request, 'servicios/delivery.html', {
                 'check': check,
@@ -207,6 +221,7 @@ def DeliveryView(request):
                 'cierre': cierre,
                 'pedidos':pedidos,
                 'nombre': restaurante.nombre,
+                'distancia': distancia,
             })
 
         elif request.method == 'POST':
@@ -218,13 +233,26 @@ def DeliveryView(request):
             #status del pedido: true=entregado o false=sin entrgar
             status = request.POST.get('status')
             nro = request.POST.get('nro')
+            distancia = request.POST.get('distancia')
 
             try:
-                if inicio and cierre:
+                if inicio and cierre and distancia:
                 # guardar en el modelo
                     delivery.d_start_time = inicio
                     delivery.d_end_time = cierre
                     delivery.save()
+                    if "+" in restaurante.direccion:
+                        restaurante.direccion=restaurante.direccion.split("+")
+                        if len(restaurante.direccion)>2:
+                            restaurante.direccion[2]=(str(distancia))
+                        else:
+                            restaurante.direccion.append(str(distancia))
+                    else:
+                        restaurante.direccion=[0,0,str(distancia)]
+                        
+
+                    restaurante.direccion = "+".join(restaurante.direccion)
+                    restaurante.save()
 
                 if status and nro:
                     if delivery.active_delivery==True:
@@ -277,7 +305,11 @@ def PickupView(request):
     if pickup and pickup.active_pickup:
         if request.method == 'GET':
             # Obtener los pedidos del restaurante
-            pedidos = PedidoModel.objects.filter(id_nro=restaurante.id,is_pickup=True,is_delivery=False).all()
+            pedidos = PedidoModel.objects.filter(
+                id_nro=restaurante.id,
+                is_pickup=True,
+                is_delivery=False,
+            ).order_by('status')
 
             # Obtener la fecha actual
             fecha_actual = timezone.now()
@@ -431,6 +463,7 @@ def HorariosMesasViews(request):
             })
             # Obtener las reservaciones ordenadas por fecha
             instance = Reservaciones_horario.objects.filter(restaurante=restaurante.id).order_by('fecha')
+            
             fecha_ayer = timezone.now().date() - datetime.timedelta(days=1)
 
             # Si no hay reservas, inicializa una nueva instancia
@@ -440,7 +473,7 @@ def HorariosMesasViews(request):
             else:
                 # Eliminar reservas que son más antiguas que ayer
                 Reservaciones_horario.objects.filter(fecha__lt=fecha_ayer).delete()
-
+                Reservacion_cliente.objects.filter(fecha__lt=fecha_ayer).delete()
                 # Inicializar un diccionario para almacenar horarios
                 horarios = {}
 

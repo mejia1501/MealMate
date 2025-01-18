@@ -10,9 +10,11 @@
 </head>
 <body>
     <h1>Iniciar sesion</h1>
-    
+    {% if error %}
+    {{ error }}
+    {% endif %}
     <form  method="POST">
-        {{error}}
+        
         {{form}}
         {% csrf_token %}
         <button>Acceder</button>

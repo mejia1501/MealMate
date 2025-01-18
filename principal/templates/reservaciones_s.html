@@ -1,5 +1,6 @@
 {% extends 'nav.html' %}
 {% load custom_filters_principal %}
+{% load static %}
 {% block content %}
 <!DOCTYPE html>
 <html lang="en">
@@ -12,28 +13,16 @@
     <title>MealMate</title>
 </head>
 <body>
-    <div class="container mt-5">
-        <h1>{{ restaurante.nombre }}</h1>
+    <div class="container">
+        <h1 class="mt-4">{{ restaurante.nombre }}</h1>
         <br>
         <ul>
-            <li>Desde {{ restaurante.fundacion }}</li>
-            <li>Dirección {{ restaurante.direccion }}</li>
-            <li>Teléfono {{ restaurante.telefono }}</li>
+            <li>Desde: {{ restaurante.fundacion }}</li>
+           
+            <li>Teléfono: {{ restaurante.telefono }}</li>
+       
+            {% include 'ubicacion_restaurante.html' %}
         </ul>
-        {% if latitud and longitud %}
-        <div id="map" style="height: 250px; width: 250px;"></div>
-        <input type="hidden" id="latitud" value="{{ latitud }}">
-        <input type="hidden" id="longitud" value="{{ longitud }}">
-        {% endif %}
-        
-        {% if latitud and longitud %} <!-- Incluir el archivo JavaScript -->
-        <script>
-            var redIconUrl = '{% static "img/leaf-red.png" %}';
-            var shadowIconUrl ='{% static "img/leaf-shadow.png" %}';
-        </script>
-        <script src="{% static 'js/ver_mapa.js' %}"></script> <!-- Asegúrate de que la ruta sea correcta -->
-        {% endif %}
-            </div>
 
         <div class="btn-group" role="group" aria-label="Basic outlined example">
             {% if delivery %}

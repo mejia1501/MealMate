@@ -1,57 +1,98 @@
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
-from .forms import CreateNewRestaurante,IniciarSesion,CreateNewCliente,CuentaCliente
+from .forms import CreateNewRestauranteForm, IniciarSesion, CreateNewClientForm, CuentaCliente
 from user_r.models import Restaurante
 from .models import Cliente
 from django.utils import timezone
+from datetime import timedelta
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib import messages
 
-# Create your views here.
+# Define el tiempo límite en días para borrar las variables de sesión
+TIEMPO_LIMITE = 20  # 20 días
+
 def iniciar_sesion(request):
+    # Establecer el timestamp si no existe
+    if 'timestamp' not in request.session:
+        request.session['timestamp'] = timezone.now().isoformat()  # Almacenar como cadena
+
+    # Convertir el timestamp de nuevo a datetime
+    timestamp = timezone.datetime.fromisoformat(request.session['timestamp'])
+
+    # Verificar si el tiempo ha excedido el límite
+    tiempo_transcurrido = timezone.now() - timestamp
+    if tiempo_transcurrido > timedelta(days=TIEMPO_LIMITE):
+        # Limpiar todas las variables de sesión
+        valor_a_conservar = request.session.get('ubicacion')
+        
+        # Vaciar todas las variables de sesión
+        request.session.flush()
+
+        # Restaurar la variable que deseas conservar
+        if valor_a_conservar is not None:
+            request.session['ubicacion'] = valor_a_conservar
+        
+        # Opcional: establecer un nuevo timestamp
+        request.session['timestamp'] = timezone.now().isoformat()  # Almacenar como cadena
+
     if request.method == 'GET':
         return render(request, 'usuario_sesion/login.html', {
             'form': IniciarSesion()
         })
-    
-    email = request.POST['email']
-    password = request.POST['password']
+    else:
+        email = request.POST['email']
+        password = request.POST['password']
 
-    if not email or not password:
-        return render(request, 'login.html', {
+        if not email or not password:
+            return render(request, 'usuario_sesion/login.html', {
+                'form': IniciarSesion(),
+                'error': 'Email y contraseña son requeridos.'
+            })
+    
+        restaurante = Restaurante.objects.filter(email=email, password1=password, password2=password).first()
+        if restaurante:
+            request.session['email'] = restaurante.email
+            restaurante.last_login = timezone.now()
+            restaurante.is_active = True
+            restaurante.save()
+            if 'registro' in request.session:
+                restaurante_id = request.session.get("restaurante")
+                if bool(request.session.get("registro")):
+                    return redirect('registro_datos', id=restaurante_id)  # Redirigir al perfil
+            else:
+                return redirect('perfil-restaurante')  # Redirigir al perfil
+        # Intentar con el cliente
+        cliente = Cliente.objects.filter(email=email, password=password).first()
+        if cliente:
+            request.session['email'] = cliente.email
+            cliente.last_login = timezone.now()
+            cliente.is_active = True
+            cliente.save()
+            if 'registro' in request.session:
+                restaurante_id = request.session.get("restaurante")
+                if bool(request.session.get("registro")):
+                    total = request.session.get("total")
+                    return redirect('pago', id=restaurante_id, total=total)  # Redirigir al pago
+            else:
+                return redirect('perfil-cliente')  # Redirigir al perfil
+
+        # Si el usuario no fue encontrado
+        return render(request, 'usuario_sesion/login.html', {
             'form': IniciarSesion(),
-            'error': 'Email y contraseña son requeridos.'
+            'error': 'Email o contraseña incorrecto'
         })
-    
-    restaurante = Restaurante.objects.filter(email=email, password1=password,password2=password).first()
-    if restaurante:
-        request.session['email'] = restaurante.email
-        request.session['type']=True
-        restaurante.last_login = timezone.now()
-        restaurante.is_active=True
-        restaurante.save()
-        return redirect('perfil-restaurante')  # rederigir al perfil
-    # intentar con el cliente
-    cliente = Cliente.objects.filter(email=email, password=password).first()
-    if cliente:
-        request.session['email'] = cliente.email
-        request.session['type']=False
-        cliente.last_login = timezone.now()
-        cliente.is_active=True
-        cliente.save()
-        return redirect('perfil-cliente')  # rederigir a perfil
-
-    # Si el usuario no fue encontradp
-    return render(request, 'usuario_sesion/login.html', {
-        'form': IniciarSesion(),
-        'error': 'Email o contraseña incorrecto'
-    })
-
 def logout(request):
     email = request.session.get('email')
     if email:
         Restaurante.objects.filter(email=email).update(is_active=False)
         Cliente.objects.filter(email=email).update(is_active=False)
         # Cerrar la sesion
-        request.session.flush()#vaciar la variable de sesion
+        valor_a_conservar = request.session.get('ubicacion')
+             #vaciar todas las variables de sesión
+        request.session.flush()
+
+                # Restaurar la variable que deseas conservar
+        request.session['ubicacion'] = valor_a_conservar
         return redirect('home') 
 
     return HttpResponse("No se logró cerrar la cuenta")
@@ -59,10 +100,10 @@ def logout(request):
 def registro_restaurante(request):
     if request.method == 'GET':
         return render(request, 'user2/registro_restaurante.html', {
-            'form': CreateNewRestaurante()
+            'form': CreateNewRestauranteForm(),
         })
     else:
-        form = CreateNewRestaurante(request.POST)
+        form = CreateNewRestauranteForm(request.POST)
         if form.is_valid():
             # chequear que las contraseñas coinciden
             if form.cleaned_data['password1'] == form.cleaned_data['password2']:
@@ -82,7 +123,12 @@ def registro_restaurante(request):
                     restaurante.save()                    
                     request.session['email'] = restaurante.email
                     request.session['type']=True
-                    return redirect("perfil-restaurante")
+                    if 'registro' in request.session:
+                        restaurante=request.session.get("restaurante")
+                        if bool(request.session.get("registro"))==True:
+                            return redirect('registro_datos',id=restaurante)  # rederigir al perfil
+                    else:
+                        return redirect('perfil-restaurante')  # rederigir al perfil
                 except Exception as e:
                     return render(request, 'user2/registro_restaurante.html', {
                         'form': form,
@@ -102,11 +148,11 @@ def registro_restaurante(request):
 def registro_cliente(request):
     if request.method == 'GET':
         return render(request, 'registro_cliente.html', {
-            'form': CreateNewCliente()
+            'form': CreateNewClientForm(),
         })
     else:
-        form = CreateNewCliente(request.POST)
-        if form.is_valid():  # Asegúrate de validar el formulario
+        form = CreateNewClientForm(request.POST)
+        if form.is_valid() :  # Asegúrate de validar el formulario
             if form.cleaned_data['password1'] == form.cleaned_data['password2']:
                 try:
                     cliente = Cliente(
@@ -114,6 +160,7 @@ def registro_cliente(request):
                         cedula=form.cleaned_data["cedula"],
                         email=form.cleaned_data["email"],
                         telefono=form.cleaned_data["telefono"],
+                        username=form.cleaned_data["username"],
                         password1=form.cleaned_data["password1"],
                         password2=form.cleaned_data["password2"],
                     )
@@ -121,21 +168,24 @@ def registro_cliente(request):
                     cliente.save()
                     request.session['email'] = cliente.email
                     request.session['type']=False
-                    return redirect("perfil-cliente")
-                except:
+                    if 'registro' in request.session:
+                        restaurante=request.session.get("restaurante")
+                        if bool(request.session.get("registro"))==True:
+                            return redirect('registro_datos',id=restaurante)  # rederigir al perfil
+                    else:
+                        return redirect('perfil-cliente')  # rederigir al perfil
+                except Exception as e:
+                    messages.error(request, 'El usuario ya existe: {}'.format(e))
                     return render(request, 'registro_cliente.html', {
                         'form': form,
-                        'error': 'El usuario ya existe'
                     })
             else:
-                return render(request, 'registro_cliente.html', {
-                    'form': form,
-                    'error': 'Las contraseñas no coinciden'
-                })
+                messages.error(request, 'Las contraseñas no coinciden')
         else:
-            return render(request, 'registro_cliente.html', {
+            # Manejar errores de validación
+            messages.error(request, 'Por favor, corrige los errores en el formulario.')
+            return render(request, 'registro_cliente.html', {\
                 'form': form,
-                'error': 'Por favor, corrige los errores en el formulario.'
             })
 
 def cuenta(request):

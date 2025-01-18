@@ -37,6 +37,7 @@ class Datos_Form(forms.Form):
     )
     telefono=forms.CharField(
         max_length=11,
+        min_length=10,
         widget=forms.TextInput(),
         label="<strong>Teléfono</strong><br>",
         required=True,
@@ -51,7 +52,7 @@ class PagoMovilForm(forms.Form):
     )
     telefono = forms.CharField(
         label="Telefono",
-        widget=forms.TextInput(attrs={'maxlength': 11}),
+        widget=forms.TextInput(attrs={'maxlength': 11,'minlength':10,}),
         required=True,
     )
     ref=forms.IntegerField(
@@ -95,11 +96,6 @@ class PagoPaypalForm(forms.Form):
         label="Número de Transacción ",
         widget=forms.TextInput,
         required=True,   
-    )
-    hora=forms.TimeField(
-        widget=forms.TimeInput(),
-        required=True,
-        label="Hora del pago ",
     )
     nombre=forms.CharField(
         max_length=40,

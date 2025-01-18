@@ -1,6 +1,6 @@
 var latitud = parseFloat(document.getElementById('latitud').value);
 var longitud = parseFloat(document.getElementById('longitud').value);
-
+var restaurante = document.getElementById('longitud').value;
 // Inicializar el mapa
 var map = L.map('map').setView([latitud, longitud], 16);
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {

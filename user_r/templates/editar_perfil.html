@@ -21,7 +21,6 @@
    <a href="{% url 'activate_d' %}"><button id="tab-4" name="tab" value="servicios">Servicios</button></a>
 
     <!-- Formulario para editar perfil -->
-   
     <h1>{{ nombre }}</h1>
     <form method="POST" action="{% url 'editar-perfil' %}"> 
         {% csrf_token %} 
@@ -35,10 +34,9 @@
         <h2>Marca la ubicación del restaurante</h2>
         <!-- Tamaño del mapa -->
         <div id="map" style="height: 400px; width: 400px;"></div>
-        
         <!-- Campos ocultos para latitud y longitud -->
-        <input type="hidden" id="lat" name="latitude" {% if latitud %} value="{{ latitud }}" {% endif %}>
-        <input type="hidden" id="long" name="longitude" {% if longitud %} value="{{ longitud }}" {% endif %}>
+        <input type="hidden" id="lat" name="latitude" {% if latitud %} value="{{ latitud }}"  {% endif %} >
+        <input type="hidden" id="long" name="longitude" {% if longitud %} value="{{ longitud }}"  {% endif %} >
         
         <button type="submit">Guardar</button> 
     </form>

@@ -20,7 +20,6 @@ class PedidoForm(forms.Form):
         widget=forms.NumberInput(attrs={'step': '1'})
     )
     nota=forms.CharField(
-        required=True,
         label="",
         initial="Vacio.",
         max_length=30,

@@ -19,12 +19,12 @@ def read_banks():
 class CuentaRestaurante(ModelForm):
     class Meta:
         model = Restaurante
-        fields = ['nombre','username','rif','telefono', 'logo']
+        fields = ['nombre','rif','telefono', 'logo',]
         widgets = { 
-                'telefono': forms.TextInput(attrs={'maxlength': 11}),
-                'nombre': forms.TextInput(attrs={'maxlength': 20}),
+                'telefono': forms.TextInput(attrs={'maxlength': 11,'minlength':11}),
+                'nombre': forms.TextInput(attrs={'maxlength': 20,'minlength': 1,}),
                 'logo': forms.TextInput(attrs={'maxlength': 100}),
-                'rif': forms.TextInput(attrs={'maxlength': 20,'label': 'RIF',}),
+                'rif': forms.TextInput(attrs={'maxlength': 20,'label': 'RIF','minlength':20}),
                 'username': forms.TextInput(attrs={'maxlength': 150,'label': 'RIF',}),
             }
         
@@ -34,7 +34,7 @@ class Items(forms.ModelForm):
         max_length=54,
         label="Plato",
         required=True,
-        widget=forms.TextInput(attrs={'class': 'form-control'})
+        widget=forms.TextInput(attrs={'class': 'form-control','minlength': 1,})
     )
     precio = forms.DecimalField(
         min_value=0.00,
@@ -74,10 +74,14 @@ class PagoForm(forms.Form):
         label="¿Trabajara con efectivo?",
         required=False,  # This field is not required by default
     )
+    punto_venta = forms.BooleanField(
+        label="¿Trabajara con punto de venta?",
+        required=False,  # This field is not required by default
+    )
 
     phone = forms.CharField(
         label="Telefono",
-        widget=forms.TextInput(attrs={'maxlength': 11}),
+        widget=forms.TextInput(attrs={'maxlength': 11,'minlength': 11,}),
         required=True,  # Consider making this field required
     )
 
@@ -104,7 +108,7 @@ class ZelleForm(ModelForm):
         fields = ['mail_z', 'phone_z']
         widgets = {
             'mail_z': forms.EmailInput(attrs={'maxlength': 254}),
-            'phone_z': forms.TextInput(attrs={'maxlength': 11}),
+            'phone_z': forms.TextInput(attrs={'maxlength': 11,'minlength': 11,}),
         }
         labels = {
             'mail_z': 'Email:',

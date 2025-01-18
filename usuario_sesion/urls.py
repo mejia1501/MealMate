@@ -8,4 +8,5 @@ urlpatterns=[
     path('logout/',views.logout,name="logout"),
     path('perfil/edit/', views.ModificarCuenta, name='editar'),
     path('restaurante/', include('user_r.urls')),
+    path('pago/', include('pedidos.urls')),
 ]

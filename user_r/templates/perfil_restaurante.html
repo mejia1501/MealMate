@@ -14,32 +14,22 @@
     
     <h1>{{ nombre }}</h1>
 <!-- Formulario para los botones de navegación -->
-<button id="tab-1" name="tab" value="datos">Datos</button>
+<button disabled id="tab-1" name="tab" value="datos">Datos</button>
 <a href="{% url 'menu' %}"><button id="tab-2" name="tab" value="menu">Menú</button></a>
 <a href="{% url 'paypal' %}"><button id="tab-3" name="tab" value="pago">Métodos de pago</button></a>
 <a href="{% url 'activate_d' %}"><button id="tab-4" name="tab" value="servicios">Servicios</button></a>
 <br><br>
-<h3>Datos del restaurante</h3><br>
+<h3>Datos del restaurante</h3><br>c
 {{ form.as_p }}
-Dirección: <br>
+{% if date %}
+Fundacion 
 <input type="date" {% if date %} value="{{ date }}"{% endif %} name="fundacion" readonly>
-
+{% endif %}
 <!-- Tamaño del mapa -->
-{% if latitud and longitud %}
-<div id="map" style="height: 300px; width: 300px;"></div>
-<input type="hidden" id="latitud" value="{{ latitud }}">
-<input type="hidden" id="longitud" value="{{ longitud }}">
+ {% if latitud or longitud %}
+{% include 'ubicacion_restaurante.html' %}
 {% endif %}
 <a name="Modificar" class="btn btn-primary" href="{% url 'editar-perfil' %}" role="button">Modificar</a> 
-
-{% if latitud and longitud %} <!-- Incluir el archivo JavaScript -->
-<script>
-    var redIconUrl = '{% static "img/leaf-red.png" %}';
-    var shadowIconUrl ='{% static "img/leaf-shadow.png" %}';
-</script>
-<script src="{% static 'js/ver_mapa.js' %}"></script> <!-- Asegúrate de que la ruta sea correcta -->
-{% endif %}
-
 </body>
 </html>
 {% endblock %}

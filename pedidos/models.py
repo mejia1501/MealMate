@@ -28,6 +28,7 @@ class PagoMovil(models.Model):
     ref=models.IntegerField()
     titular=models.CharField(max_length=40,default="")
     telefono=models.CharField(max_length=11,default="")
+    precio_dolar=models.FloatField(default=0)
 
 class PagoEfectivo(models.Model):
     pedido=models.ForeignKey(PedidoModel,on_delete=models.CASCADE)
@@ -42,6 +43,7 @@ class ZelleModel(models.Model):
     titular=models.CharField(max_length=40)
     telefono=models.CharField(max_length=11)
     email = models.EmailField(max_length=254)
+    precio_dolar=models.FloatField(default=0)
 
 class PaypalModel(models.Model):
     pedido=models.ForeignKey(PedidoModel,on_delete=models.CASCADE)
@@ -50,3 +52,4 @@ class PaypalModel(models.Model):
     fecha=models.DateTimeField()
     titular=models.CharField(max_length=40)
     email = models.EmailField(max_length=254)
+    precio_dolar=models.FloatField(default=0)

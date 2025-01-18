@@ -61,6 +61,10 @@
     {% if pago.email %}
     <li class="list-group-item"><b>Direccion de correo electronico</b> {{ pago.email }}</li>
     {% endif %}
+    {% if pago.fecha %}
+    <li class="list-group-item"><b>Fecha</b> {{ pago.fecha }}</li>
+    {% endif %}
+    <li class="list-group-item"><b>Precio de cobro del dolar</b> $1 = {{ pago.precio_dolar }} </li>
   </ul>
 
   {% if diccionario %}

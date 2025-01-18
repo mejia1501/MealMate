@@ -11,6 +11,7 @@ urlpatterns=[
     path('datos_cliente/<str:id>/',views.Registro_datos_view,name='registro_datos'),
     path('pago_movil/<str:id>/',views.PagoMovilView,name='pago_movil'),
     path('zelle/<str:id>/',views.ZellePagoView,name='zelle_pago'),
+    path('paypal/<str:id>/',views.PaypalPagoView,name='paypal_pago'),
     path('efectivo/<str:id>/',views.EfectivoPagoView,name='pago_efectivo'),
     path('reservacion/reserva_cliente/<str:param1>/<int:param2>/<str:param3>/',views.VerReservaView,name='ver_reserva'),
 

@@ -1,6 +1,5 @@
 from django.urls import path,include
 from . import views
-from servicios import views as servicios_views
 from servicios.views import ActivateDelivView
 urlpatterns=[
     path('',views.cuenta,name="perfil-restaurante"),

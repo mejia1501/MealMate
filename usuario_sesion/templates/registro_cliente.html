@@ -6,30 +6,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro</title>
+    <title>MealMate</title>
     <link rel="stylesheet" href="{% static 'css/example.css' %}">
   
-    <script>
-        function redirigir(event, tipo) {
-            event.preventDefault();
-            if (tipo === 'restaurante') {
-                window.location.href = "{% url 'registro_restaurante' %}";
-            }
-        }
-    </script>
 </head>
 <body>
     
-    <h1>Registro</h1>
-    <form method="post">
-        <button id="tab-1" checked name="tab" value="cliente" onclick="redirigir(event, 'cliente')">Cliente</button>
-        <button id="tab-2" name="tab" value="restaurante" onclick="redirigir(event, 'restaurante')">Restaurante</button>
-    </form>
+    <h1>Registro cliente</h1>
+    <button disabled>Cliente</button>
+        <a href="{% url 'registro_restaurante' %}"><button>Restaurante</button></a>
+    {% if error %}
+    <div
+        class="alert alert-danger"
+        role="alert"
+    >
+        <strong>Error</strong> {{ error }}
+    </div>
+    
+    {% endif %}
     <div id="cliente-form" class="form-container">
         <form method="POST">
             {{ form }}
-            {%csrf_token%}
-            {{ error }}
+            {% csrf_token %}
+            
             <br>
             <input type="submit" value="Registrarse">
         </form>

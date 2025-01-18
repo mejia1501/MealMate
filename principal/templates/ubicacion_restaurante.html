@@ -1,0 +1,34 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+</head>
+<body>
+{% if latitud and longitud %}
+    <div class="card" style="width: 18rem;">
+        <div class="card-header">
+            Dirección
+        </div>
+        <div class="card-body">
+            <div id="map" style="height: 250px; width: 100%;"></div>
+            <input type="hidden" id="latitud" value="{{ latitud }}">
+            <input type="hidden" id="longitud" value="{{ longitud }}">
+            <input type="hidden" id="nombre" value="{{ nombre }}">
+            <p class="card-text">{{ direccion }}</p>
+        </div>
+    </div> <!-- Incluir el archivo JavaScript -->
+    
+    <script>
+        var redIconUrl = '{% static "img/leaf-red.png" %}';
+        var shadowIconUrl = '{% static "img/leaf-shadow.png" %}';
+    </script>
+    <script src="{% static 'js/ver_mapa.js' %}"></script> <!-- Asegúrate de que la ruta sea correcta -->
+{% endif %}
+</body>
+
+</html>

@@ -17,24 +17,26 @@ def cuenta(request):
         })
 
     restaurante = Restaurante.objects.filter(email=mail).first()
+    request.session['restaurante']=restaurante.id
     if (restaurante and restaurante.is_active):
 
         form=CuentaRestaurante(instance=restaurante)
+
         for field in form.fields.values():#lee cada valor del form
             field.widget.attrs['readonly'] = True#readonly,solo mostrar
         if restaurante.direccion!="":
             coordenadas=restaurante.direccion.split('+')
         #Manejo de la fecha de fundación
-            if restaurante.fundacion:
-                date_fundacion = restaurante.fundacion.isoformat
-            else:
-                date_fundacion = None
+        if restaurante.fundacion:
+            date_fundacion = restaurante.fundacion.isoformat
+        else:
+            date_fundacion = None
 
         return render(request, 'perfil_restaurante.html', {
             'nombre':restaurante.nombre,
             'form':form,
-            'latitud': str(coordenadas[0]),
-            'longitud': str(coordenadas[1]),
+            'latitud': str(coordenadas[0]) if restaurante.direccion!="" else False,
+            'longitud': str(coordenadas[1]) if restaurante.direccion!="" else False,
             'date': date_fundacion if date_fundacion else False,
         })
 
@@ -54,13 +56,13 @@ def ModificarCuenta(request):
             # Verificar si la dirección no es None o vacía
             if restaurante.direccion:
                 coordenadas = restaurante.direccion.split('+')
+
                 # Asegurarse de que hay al menos dos coordenadas
-                latitud = str(coordenadas[0]) if len(coordenadas) > 0 else None
-                longitud = str(coordenadas[1]) if len(coordenadas) > 1 else None
+                latitud = str(coordenadas[0])
+                longitud = str(coordenadas[1])
             else:
                 latitud = None
                 longitud = None
-
             # Manejo de la fecha de fundación
             if restaurante.fundacion:
                 date_fundacion = restaurante.fundacion.isoformat
@@ -86,11 +88,10 @@ def ModificarCuenta(request):
             #verificar que el formulario no tenga errores
             if form.is_valid() and latitude and  longitude and fundacion:
                 try:
-                    restaurante.direccion=str(latitude+'+'+longitude)
+                    restaurante.direccion= f"{latitude}+{longitude}"
                     restaurante.fundacion=fundacion
                     restaurante.save()
                     form.save()#guardar formulario
-                    print("FUNCIONA")
                     return redirect('perfil-restaurante')#rederigir al usuario a su perfil luego de modificarlo
                 except ValueError:
                     return render(request, 'editar_perfil.html', {
@@ -126,13 +127,15 @@ def CrearMenu(request):
         form = Items(request.POST)
         if form.is_valid():
             try:
+                print("INGREDIENTES",form.cleaned_data['ingredientes'])
                 #se guardan los datos del formulairo en el modelo Menu
                 restaurant = Restaurante.objects.filter(email=mail).first()
+                codigo=','.join([str(ingrediente) for ingrediente in form.cleaned_data['ingredientes']])
                 nuevo_menu = Menu(
                     restaurante=restaurant,
                     comida=form.cleaned_data["plato"],
                     precios=form.cleaned_data["precio"],
-                    codigo=','.join([str(ingrediente.codigo) for ingrediente in form.cleaned_data['ingredientes']]),
+                    codigo=codigo,
                 )
                 nuevo_menu.save()
                 return redirect("menu")
@@ -316,7 +319,6 @@ def NuevoIngrediente(request,nro):
                     ingrediente=form.cleaned_data["ingrediente"],
                 )
                 new.save()
-                messages.success(request, 'Ingrediente creado con éxito.')
                 nro=int(nro)
                 #entorno=1=crear, entorno=0=modificar
                 if int(request.session.get('entorno'))==1:
@@ -324,7 +326,6 @@ def NuevoIngrediente(request,nro):
                 else:
                     nro=str(nro)
                     return redirect('editar_menu',item=nro)
-
         else:
             # Si el formulario no es válido, puedes volver a renderizar la página con errores
             return render(request, 'add_ingredient.html', {
@@ -355,6 +356,7 @@ def PagoNacional(request):
         if nacional:
             form = PagoForm(initial={
                 'efectivo': nacional.efectivo_active,
+                'punto_venta':nacional.punto_active,
                 'phone': nacional.telefono_pm,
                 'banco': nacional.banco,
             })
@@ -382,12 +384,14 @@ def PagoNacional(request):
                     nacional.pagomovil_active = True
                     nacional.efectivo_active = form.cleaned_data["efectivo"]
                     nacional.telefono_pm = form.cleaned_data["phone"]
+                    nacional.punto_active= form.cleaned_data['punto_venta']
                     nacional.save()
                 else:
                     Pago.objects.create(
                         restaurante=restaurant,
                         banco=form.cleaned_data["banco"],
                         pagomovil_active=True,
+                        punto_active=form.cleaned_data['punto_venta'],
                         efectivo_active=form.cleaned_data["efectivo"],
                         telefono_pm=form.cleaned_data["phone"]
                     )

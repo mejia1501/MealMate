@@ -52,9 +52,14 @@
         <input type="time" name="inicio" value="{{ inicio }}" id="id_inicio">
         Cierre
         <input type="time" name="cierre" value="{{ cierre }}" id="id_cierre">
+        <br>
+                        Distancia (desde su restaunte al cliente) para la entrega de delivery 
+                        <input type="number" min="0"  step="1" name="distancia" value="{{ distancia }}" required> km
+                        <br>
     </div>
+    <input type="submit" value="Guardar">
 </form>
-
+<br><br>
 <!-- Tabla de pedidos -->
 <div class="table-responsive-lg">
     <table class="table table-striped-columns table-hover table-borderless table-primary align-middle">
@@ -81,6 +86,7 @@
                         <select name="status">
                             <option value="True" {% if i.status %}selected{% endif %}>Entregado</option>
                             <option value="False" {% if not i.status %}selected{% endif %}>Sin entregar</option>
+                        
                         </select>
                 </td>
                 <td>

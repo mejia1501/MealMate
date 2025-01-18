@@ -38,14 +38,14 @@
                                 {{ ingrediente }}{% if not forloop.last %}, {% endif %}
                             {% endfor %}
                         </td>
-                        <td>{{ item.precio }}</td>
+                        <td>$ {{ item.precio }}</td>
                         <td>
                             {{ item.cantidad }}
                         </td>
                         <td>
                             {{ item.comentario }}
                         </td>
-                        <td>{{ item.total }}</td>
+                        <td>$ {{ item.total }} / Bs. {{ item.bolivar }}</td>
                         <td>
                             <a href="{% url 'modificar_pedido2' id item.item %}">Modificar</a>
                             <a  href="{% url 'eliminar_pedido' key id %}">
@@ -73,7 +73,7 @@
             <tbody class="table-group-divider">
                 <tr class="table-secondary">   
                     <td>Sub-Total</td>
-                    <td> {{ total }}</td>
+                    <td>$ {{ total }}</td>
                     
                 </tr>
                 <tr class="table-secondary">   
@@ -82,7 +82,7 @@
                 </tr>
                 <tr class="table-info"> 
                     <td><b>Total</b></td>
-                    <td>{{ iva }}</td>
+                    <td>$ {{ iva }} / Bs. {{ bolivares }}</td>
                 </tr>
             </tbody>
             <tfoot>

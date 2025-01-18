@@ -18,23 +18,15 @@
         <br>
         <ul>
             <li>Desde: {{ restaurante.fundacion }}</li>
-            <li>Dirección: {{ restaurante.direccion }}</li>
+           
             <li>Teléfono: {{ restaurante.telefono }}</li>
-        </ul>
-        {% if latitud and longitud %}
-<div id="map" style="height: 250px; width: 250px;"></div>
-<input type="hidden" id="latitud" value="{{ latitud }}">
-<input type="hidden" id="longitud" value="{{ longitud }}">
-{% endif %}
-
-{% if latitud and longitud %} <!-- Incluir el archivo JavaScript -->
-<script>
-    var redIconUrl = '{% static "img/leaf-red.png" %}';
-    var shadowIconUrl ='{% static "img/leaf-shadow.png" %}';
-</script>
-<script src="{% static 'js/ver_mapa.js' %}"></script> <!-- Asegúrate de que la ruta sea correcta -->
-{% endif %}
+       
+        
     </div>
+
+    {% include 'ubicacion_restaurante.html' %}
+
+</ul>
         <div class="btn-group mb-4" role="group" aria-label="Basic outlined example">
             {% if delivery %}
                 <a href="{% url 'presentacion_one' id %}"><button type="button" class="btn btn-outline-primary">Delivery</button></a>
@@ -46,7 +38,7 @@
                 <a href="{% url 'presentacion_two' id %}"><button type="button" class="btn btn-outline-primary">Reservaciones</button></a>
             {% endif %}
 
-            
+        </ul>
         </div>
 
         <h3>Menu</h3>
@@ -68,7 +60,7 @@
                                         {% endfor %}
                                         </ul>
                                     </div>
-                                    <h5><strong>Precio  </strong>{{ item.precios }}</h5>
+                                    <h5><strong>Precio  </strong>$ {{ item.precios }}</h5>
                                     <div class="d-grid gap-2">
                                         <!--COn este boton se accede a la pagina flotante-->
                                         

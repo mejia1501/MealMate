@@ -30,4 +30,5 @@ urlpatterns = [
     path('perfil-restaurante/', user_r_views.cuenta, name="perfil-restaurante"),  # Perfil restaurante
     path('logout/', usuario_sesion_views.logout, name="logout"),
     path('login/', usuario_sesion_views.iniciar_sesion, name="login"),
+    
 ]

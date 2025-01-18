@@ -18,6 +18,7 @@
             <li>Desde {{ restaurante.fundacion }}</li>
             <li>Dirección {{ restaurante.direccion }}</li>
             <li>Teléfono {{ restaurante.telefono }}</li>
+            {% include 'ubicacion_restaurante.html' %}
         </ul>
         <div class="btn-group" role="group" aria-label="Basic outlined example">
             {% if delivery %}

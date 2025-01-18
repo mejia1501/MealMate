@@ -11,11 +11,15 @@
 <body>
     <h1>{{ restaurante }}</h1>
 
-    {% if ubicacion %}
-        Ubicacion: {{ ubicacion }}
-        <a href="{% url 'ubicacion' id %}"><button type="button" class="btn btn-outline-primary">Cambiar ubicacion</button></a>
-        {% endif %}
-    
+    <br>
+        <div class="card">
+            <div class="body">
+                <p><strong>Ubicacion de entrega del pedido</strong></p>
+                {{ ubicacion }}<br>
+                <a href="{% url 'ubicacion' id %}"><button type="button" class="btn btn-outline-primary">Cambiar ubicacion</button></a>
+            </div>
+        </div>
+    <br>
     <div class="container">
         <h3>Pedido</h3>
         <table class="table">
@@ -43,14 +47,14 @@
                                 {{ ingrediente }}{% if not forloop.last %}, {% endif %}
                             {% endfor %}
                         </td>
-                        <td>{{ item.precio }}</td>
+                        <td>$ {{ item.precio }}</td>
                         <td>
                             {{ item.cantidad }}
                         </td>
                         <td>
                             {{ item.comentario }}
                         </td>
-                        <td>{{ item.total }}</td>
+                        <td>$ {{ item.total }} / Bs. {{ item.bolivar }}</td>
                         <td>
                             <a href="{% url 'modificar_pedido' id item.item %}">Modificar</a>
                             <a href="{% url 'eliminar_pedido' key id %}">
@@ -78,7 +82,7 @@
             <tbody class="table-group-divider">
                 <tr class="table-secondary">   
                     <td>Sub-Total</td>
-                    <td> {{ total }}</td>
+                    <td>$ {{ total }}</td>
                     
                 </tr>
                 <tr class="table-secondary">   
@@ -87,7 +91,7 @@
                 </tr>
                 <tr class="table-info"> 
                     <td><b>Total</b></td>
-                    <td>{{ iva }}</td>
+                    <td>$ {{ iva }} / Bs. {{ bolivares }}</td>
                 </tr>
             </tbody>
             <tfoot>

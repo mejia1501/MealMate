@@ -18,6 +18,7 @@
             <li>Desde {{ restaurante.fundacion }}</li>
             <li>Dirección {{ restaurante.direccion }}</li>
             <li>Teléfono {{ restaurante.telefono }}</li>
+            {% include 'ubicacion_restaurante.html' %}
         </ul>
         <div class="btn-group" role="group" aria-label="Basic outlined example">
             {% if delivery %}
@@ -61,6 +62,7 @@
                 </option>
             {% endfor %}
         </select>
+        {% if mesas %}
         <div id="mesasContainer">
             {% for fecha,mesas in mesas.items %}
                 
@@ -71,8 +73,22 @@
                 <br>
             {% endfor %}
         </div>
-    <br>
-    <input type="submit" value="Continuar">
+        <br>
+    <input type="submit" value="Continuar">   
+        {% else %}
+        <br>
+            <div
+                class="alert alert-warning"
+                role="alert"
+            
+                <h4 class="alert-heading">Ups!</h4>
+                <p>Lo sentimos, este restaurante no ha habilitado mesas para su reservacion</p>
+                <hr />
+                <p class="mb-0">Para reservar contacte al {{ restaurante.telefono }}</p>
+            </div>
+         
+        {% endif %}
+    
 </form>
 </body>
 </html>

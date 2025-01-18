@@ -27,13 +27,26 @@
         <strong>Error</strong> {{ error }}
     </div>
     {% endif %}
+    
     <h5>Registre sus datos para procesar el pedido</h5>
+    <div class="alert alert-secondary" role="alert">
+        Si inicias sesión, tus datos se cargarán automáticamente sin necesidad de introducirlos en cada pedido.
+        <a href="{% url 'login' %}">Iniciar sesión</a>
+      </div>
+      
     <form method="post">
         {% csrf_token %}
         {{ form }}
         {% if ubicacion %}
-        <p><strong>Ubicacion de entrega</strong></p>
-        <a href="{% url 'ubicacion' item %}"><p>{{ ubicacion }}</p></a>
+        <br>
+        <div class="card">
+            <div class="body">
+                <p><strong>Ubicacion de entrega del pedido</strong></p>
+                {{ ubicacion }}<br>
+                <a href="{% url 'ubicacion' item %}"><button type="button" class="btn btn-outline-primary">Cambiar ubicacion</button></a>
+            </div>
+        </div>
+    <br>
         {% endif %}
         <br>
         <input type="submit" value="Continuar">

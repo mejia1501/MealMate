@@ -15,7 +15,7 @@
         <h1>{{ inicio }}</h1>
     {% endif %}
     <br>
-    <form method="post">
+    <form method="post" action="{% url 'home'  %}">
         {% csrf_token %}
         {{ busqueda.texto }}
         <input type="submit" value="Buscar" class="btn btn-primary">
@@ -43,7 +43,6 @@
               <div class="col-md-8">
                 <div class="card-body">
                   <h5 class="card-title">{{ item.restaurante_nombre }}</h5>
-                  <p class="card-text"></p><a href="#" class="card-link">{{ item.ubicacion }}</a></p>
                 </div>
               </div>
             </div>

@@ -47,9 +47,6 @@ if (!isNaN(latitud) && !isNaN(longitud)) {
     });
 }
 
-// Definir el icono del marcador
-
-
 // Función para manejar el clic en el mapa
 function onMapClick(event) {
     let latitud = event.latlng.lat; // Obtener la latitud

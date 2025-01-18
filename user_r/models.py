@@ -13,17 +13,17 @@ class Restaurante(models.Model):
     rif = models.CharField(max_length=20,default="")
     email = models.EmailField(max_length=254,default="")
     telefono = models.CharField(max_length=11,default="")
-    direccion = models.CharField(max_length=200,default="")
+    direccion = models.CharField(max_length=50,default="")
     fundacion = models.DateField(default=date.today)
     last_login = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
     date_joined = models.DateTimeField(default=timezone.now)
     logo=models.CharField(max_length=100,default='default_logo.jpg')
 
-    USERNAME_FIELD = 'username'  # Campo que se usará para el inicio de sesión
-    REQUIRED_FIELDS = ['email']
+    USERNAME_FIELD = 'email'  # Campo que se usará para el inicio de sesión
+    REQUIRED_FIELDS = []
     def __str__(self): return self.nombre
-
+    
 class Ingredientes(models.Model):
     codigo = models.AutoField(primary_key=True)
     ingrediente = models.CharField(max_length=20)
@@ -44,6 +44,7 @@ class Pago(models.Model):
     banco=models.CharField(max_length=4)
     telefono_pm= models.CharField(max_length=11)
     efectivo_active = models.BooleanField(default=False)
+    punto_active=models.BooleanField(default=False)
     #para ofrecer seguridad al cliente el rif del pago movil debe de ser el mismo con el que se registra la empresa
 
 class Zelle(models.Model):

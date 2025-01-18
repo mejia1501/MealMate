@@ -9,6 +9,8 @@ from django.utils import timezone
 from datetime import datetime
 import csv
 import requests
+from geopy.geocoders import Nominatim
+
 # Create your views here.
 
 def read_banks(value):
@@ -350,7 +352,6 @@ def Registro_datos_view(request,id):
     restaurante = Restaurante.objects.filter(id=id).first()
     if request.method == "GET":
         request.session['registro']=True
-
         
         form=Datos_Form(initial={
             'nombre':request.session.get('nombre'),
@@ -358,9 +359,17 @@ def Registro_datos_view(request,id):
             'email': request.session.get('mail'),
             'telefono': request.session.get('telefono'),
         })
+        tipo=request.session.get('type')
+        tipo=bool(tipo)
+        ubicacion=""
+        if tipo==False:
+            ubicacion=request.session.get("ubicacion")
+            ubicacion=ubicacion.split("+")
+            ubicacion=obtener_direccion(ubicacion[0], ubicacion[1])
+
         return render(request, 'registro_datos.html', 
             {'form': form,
-             'ubicacion':request.session.get('ubicacion'),
+             'ubicacion': ubicacion if ubicacion else False,
              'item': restaurante.id,
              'nombre':restaurante.nombre,
              'reservacion':request.session.get('reservacion'),
@@ -584,15 +593,17 @@ def PagoMovilView(request, id):
                     ref=form.cleaned_data['ref'],
                     titular=form.cleaned_data['nombre'],
                     telefono=form.cleaned_data['telefono'],
-                    
+                    precio_dolar=cambio_dolar('1'),           
                 )
                 nuevo_pago.save() 
                     # Guardar el valor de la variable que deseas conservar
                 valor_a_conservar = request.session.get('email')
+                timestamp=request.session.get('timestamp')
                     # Vaciar todas las variables de sesión
                 request.session.flush()
                     # Restaurar la variable que deseas conservar
                 request.session['email'] = valor_a_conservar
+                request.session['timestamp'] = timestamp
                 return redirect('success')
             except Exception as e:
                 return render(request,'pago_movil.html',{
@@ -621,9 +632,10 @@ def ZellePagoView(request, id):
     if total is None:
         return render(request, 'zelle_pago.html', {'error': 'Total no encontrado en la sesión.'})  # Manejo de error
     restaurante = Restaurante.objects.filter(id=id).first()
+    if not restaurante:
+        return render(request, 'zelle_pago.html', {'error': 'Restaurante no encontrado.'})  # Manejo de error
     if request.method == "GET":
-        if not restaurante:
-            return render(request, 'zelle_pago.html', {'error': 'Restaurante no encontrado.'})  # Manejo de error
+        
         pago_nacional=Pago.objects.filter(restaurante=restaurante.id).first()
         zelle = Zelle.objects.filter(restaurante=restaurante.id).first()
         paypal = Paypal.objects.filter(restaurante=restaurante.id).first()
@@ -645,6 +657,8 @@ def ZellePagoView(request, id):
             'efectivo': pago_nacional.efectivo_active if pago_nacional.efectivo_active else False,
             'zelle': zelle.zelle_active if zelle else False,
             'paypal': paypal.paypal_active if paypal else False,
+            'fecha': datetime.today().strftime('%Y-%m-%d'),
+            'hora': timezone.localtime(timezone.now()).strftime('%H:%M'),
         })
     
     elif request.method == "POST":
@@ -652,9 +666,10 @@ def ZellePagoView(request, id):
             return render(request, 'zelle_pago.html', {'error': 'Restaurante no encontrado.'})  # Manejo de error
         fecha=request.POST.get('fecha')
         # Convertir la fecha_input a un objeto date 
-        fecha = datetime.datetime.strptime(fecha, '%Y-%m-%d').date() 
+        fecha = datetime.strptime(fecha, '%Y-%m-%d').date() 
         # Obtener la hora actual 
-        hora_actual = timezone.now().time()
+        hora=request.POST.get('hora')
+        hora=datetime.strptime(hora,'%H:%M').time() 
         form = PagoZelleForm(request.POST)
         if form.is_valid():
             try:
@@ -677,7 +692,7 @@ def ZellePagoView(request, id):
                     nuevo_pedido = PedidoModel(
                         id_nro=restaurante,
                         nro_items=request.session.get('elegidos'),
-                        fecha=datetime.datetime.combine(fecha, hora_actual),
+                        fecha=datetime.combine(fecha, hora),
                         notas=';'.join(notas),
                         cantidades=request.session.get('cantidad'),
                         nombre=request.session.get('nombre'),
@@ -694,7 +709,7 @@ def ZellePagoView(request, id):
                     nuevo_pedido = PedidoModel(
                         id_nro=restaurante,
                         nro_items=request.session.get('elegidos2'),
-                        fecha=datetime.datetime.combine(fecha, hora_actual),
+                        fecha=datetime.combine(fecha, hora),
                         notas=';'.join(notas2),
                         cantidades=request.session.get('cantidad2'),
                         nombre=request.session.get('nombre'),
@@ -716,19 +731,23 @@ def ZellePagoView(request, id):
                     titular=form.cleaned_data['nombre'],
                     telefono=form.cleaned_data['telefono'],
                     email=form.cleaned_data['email'],
-                    fecha=form.cleaned_data['fecha'],
+                    fecha=datetime.combine(fecha, hora),
+                    precio_dolar=cambio_dolar('1'), 
                 )
                 nuevo_pago.save() 
                     # Guardar el valor de la variable que deseas conservar
                 valor_a_conservar = request.session.get('email')
+                timestamp=request.session.get('timestamp')
                     # Vaciar todas las variables de sesión
                 request.session.flush()
                     # Restaurar la variable que deseas conservar
                 request.session['email'] = valor_a_conservar
+                request.session['timestamp'] = timestamp
                 return redirect('success')
             except Exception as e:
                 return render(request,'zelle_pago.html',{
                         'error': f"ERROR: {e} ",
+                        'item': restaurante.id,
                 })
        
             # Si el formulario no es válido, imprime los errores para depuración
@@ -744,6 +763,142 @@ def ZellePagoView(request, id):
                 'rif': restaurante.rif,
         })
 
+def PaypalPagoView(request, id):
+    id = int(id)
+    if request.session.get('type')==False:#delivery
+        total=request.session.get('total')
+    elif request.session.get('type')==True:#Pickup
+        total=request.session.get('total2')
+    
+    restaurante = Restaurante.objects.filter(id=id).first()
+    if request.method == "GET":
+        if not restaurante:
+            return render(request, 'paypal_pago.html', {'error': 'Restaurante no encontrado.'})  # Manejo de error
+        pago_nacional=Pago.objects.filter(restaurante=restaurante.id).first()
+        zelle = Zelle.objects.filter(restaurante=restaurante.id).first()
+        paypal = Paypal.objects.filter(restaurante=restaurante.id).first()
+
+        form = PagoPaypalForm(initial={ 
+            'nombre': request.session.get('nombre'),
+            'hora': timezone.localtime(timezone.now()).strftime('%H:%M'), 
+            'email': request.session.get('mail'),
+        })
+        return render(request, 'paypal_pago.html', {
+            'item': restaurante.id,
+            'pago_restaurante': paypal,
+            'form': form,
+            'total': total,
+            'rif': restaurante.rif,
+            'registro': bool(request.session.get('registro')),
+            'pedidos': bool(request.session.get('type')),
+            'pago_movil': pago_nacional.pagomovil_active if pago_nacional.pagomovil_active else False,
+            'efectivo': pago_nacional.efectivo_active if pago_nacional.efectivo_active else False,
+            'zelle': zelle.zelle_active if zelle else False,
+            'paypal': paypal.paypal_active if paypal else False,
+            'fecha': datetime.today().strftime('%Y-%m-%d'),
+            'hora': timezone.localtime(timezone.now()).strftime('%H:%M'),
+        })
+    
+    elif request.method == "POST":
+        if not restaurante:
+            return render(request, 'paypal_pago.html', {'error': 'Restaurante no encontrado.'})  # Manejo de error
+        fecha=request.POST.get('fecha')
+        # Convertir la fecha_input a un objeto date 
+        fecha = datetime.strptime(fecha, '%Y-%m-%d').date() 
+        hora=request.POST.get('hora')
+        hora=datetime.strptime(hora,'%H:%M').time() 
+
+        form = PagoPaypalForm(request.POST)
+        if form.is_valid():
+            try:
+                if request.session.get('elegidos'):
+                    notas=[]
+                    for i in request.session.get('elegidos').split(','):
+                        comentario = request.session.get(f'comentario_{i}', '')
+                        if comentario:
+                            notas.append(comentario)
+                
+                if request.session.get('elegidos2'):
+                    notas2=[]
+                    for i in request.session.get('elegidos2').split(','):
+                        comentario2 = request.session.get(f'2comentario_{i}', '')
+                        if comentario2:
+                            notas2.append(comentario2)
+                # Al registrar un nuevo pedido
+                # Crear una nueva instancia de Pedido_Delivery
+                if request.session.get('type')==False:#True=pickup, False=delivery
+                    nuevo_pedido = PedidoModel(
+                        id_nro=restaurante,
+                        nro_items=request.session.get('elegidos'),
+                        fecha=datetime.combine(fecha,hora),
+                        notas=';'.join(notas),
+                        cantidades=request.session.get('cantidad'),
+                        nombre=request.session.get('nombre'),
+                        identificacion=request.session.get('identificacion'),
+                        email=request.session.get('mail'),
+                        telefono=request.session.get('telefono'),
+                        ubicacion=request.session.get('ubicacion'),
+                        status=False,
+                        monto=total,
+                        is_delivery=True,
+                        is_pickup=False,
+                    )
+                elif request.session.get('type')==True:#True=pickup, False=delivery
+                    nuevo_pedido = PedidoModel(
+                        id_nro=restaurante,
+                        nro_items=request.session.get('elegidos2'),
+                        fecha=datetime.combine(fecha,hora),
+                        notas=';'.join(notas2),
+                        cantidades=request.session.get('cantidad2'),
+                        nombre=request.session.get('nombre'),
+                        identificacion=request.session.get('identificacion'),
+                        email=request.session.get('mail'),
+                        telefono=request.session.get('telefono'),
+                        status=False,
+                        monto=total,
+                        is_delivery=False,
+                        is_pickup=True,
+                    )
+                nuevo_pedido.save()  # Esto crea un nuevo registro en la base de datos
+
+                # Crear una nueva instancia de PagoMovil
+                nuevo_pago = PaypalModel(
+                    pedido=nuevo_pedido,  # Asigna la instancia del pedido
+                    monto=total,
+                    ref=form.cleaned_data['ref'],
+                    titular=form.cleaned_data['nombre'],
+                    email=form.cleaned_data['email'],
+                    fecha=datetime.combine(fecha, hora),
+                    precio_dolar=cambio_dolar('1'), 
+                )
+                nuevo_pago.save() 
+                    # Guardar el valor de la variable que deseas conservar
+                valor_a_conservar = request.session.get('email')
+                timestamp=request.session.get('timestamp')
+                    # Vaciar todas las variables de sesión
+                request.session.flush()
+                    # Restaurar la variable que deseas conservar
+                request.session['email'] = valor_a_conservar
+                request.session['timestamp'] = timestamp
+                return redirect('success')
+            except Exception as e:
+                return render(request,'paypal_pago.html',{
+                        'error': f"ERROR: {e} ",
+                        'item': restaurante.id,
+                })
+       
+            # Si el formulario no es válido, imprime los errores para depuración
+        print(form.errors)
+            # Renderiza de nuevo el formulario con los errores
+        return render(request, 'paypal_pago.html', {
+                'form': form,
+                'error': 'Formulario no válido.',
+                'registro': request.session.get('registro'),
+                'pedidos': bool(request.session.get('type')),
+                'total': total,  # Asegúrate de pasar el total de nuevo
+                'item': restaurante.id,
+                'rif': restaurante.rif,
+        })
 
 def EfectivoPagoView(request,id):
     restaurante=Restaurante.objects.filter(id=id).first()
@@ -892,10 +1047,12 @@ def EfectivoPagoView(request,id):
                     nuevo_pago.save() 
                         # Guardar el valor de la variable que deseas conservar
                     valor_a_conservar = request.session.get('email')
+                    timestamp=request.session.get('timestamp')
                         # Vaciar todas las variables de sesión
                     request.session.flush()
                         # Restaurar la variable que deseas conservar
                     request.session['email'] = valor_a_conservar
+                    request.session['timestamp'] = timestamp
                     return redirect('success')
                 
                 except Exception as e:
@@ -916,14 +1073,15 @@ def ReservacionesFechaView(request):
     id=int(request.session.get('restaurante'))
     personas=int(request.session.get('puestos'))
     restaurante = Restaurante.objects.filter(id=id).first()
+    reservacion = Reservaciones_config.objects.filter(restaurante=restaurante.id).first()
+    pandd = Pickup_Delivery.objects.filter(restaurante=restaurante.id).first()
 
     if not restaurante:
         raise Restaurante.DoesNotExist
     if request.method == 'GET':
             # Procesar las mesas
          # Obtener la configuración de reservaciones y la opción de entrega/pickup
-        reservacion = Reservaciones_config.objects.filter(restaurante=restaurante.id).first()
-        pandd = Pickup_Delivery.objects.filter(restaurante=restaurante.id).first() 
+         
 
         # Procesar las mesas
         reservacion.mesas = reservacion.mesas.split(',')
@@ -981,7 +1139,6 @@ def ReservacionesFechaView(request):
 
         # Imprimir el resultado
         print("MESAS Y FECHAS ", lista)
-        print("MESA:",lista['2025-01-07'])
         # Obtener la mesa mayor
         mayor = max(reservacion.mesas)
         return render(request, 'reser_fecha.html', {
@@ -997,16 +1154,18 @@ def ReservacionesFechaView(request):
     elif request.method == 'POST':
         personas2 = request.POST.get('personas')
         fecha = request.POST.get('fecha')
-        
-        fecha=str(fecha)
-        fecha=fecha.split('+')
-        mesas=str(fecha[1])
-        fecha=str(fecha[0])
+        mesas=""
 
-        print("Datos recibidos:")
-        print("Personas:", personas2)
-        print("Fecha:", fecha)
-        print("Mesa: ",mesas)
+        if fecha:
+            fecha=str(fecha)
+            fecha=fecha.split('+')
+            mesas=str(fecha[1])
+            fecha=str(fecha[0])
+
+            print("Datos recibidos:")
+            print("Personas:", personas2)
+            print("Fecha:", fecha)
+            print("Mesa: ",mesas)
 
         if mesas and personas2 and fecha:
             if ',' in mesas:
@@ -1034,6 +1193,9 @@ def ReservacionesFechaView(request):
         else:
             return render(request, 'reser_fecha.html', {
                 'error': "Revise los datos",
+                'restaurante': restaurante,
+                'delivery': pandd.active_delivery if pandd else False,
+                'pickup': pandd.active_pickup if pandd else False,
             })
         
 def ReservacionesHoraView(request):
@@ -1326,4 +1488,9 @@ def cambio_dolar(monto):
         print(f"Error: {response.status_code}")
         return None
 
-    
+def obtener_direccion(param1,param2):
+    param1=str(param1)
+    param2=str(param2)
+    geolocator = Nominatim(user_agent="MealMate")
+    location = geolocator.reverse(f"{param1}, {param2}")
+    return location.address
