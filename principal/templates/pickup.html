@@ -51,9 +51,9 @@
                             <div class="card">
                                 <img src="..." class="card-img-top" alt="{{ item.comida }}">
                                 <div class="card-body">
-                                    <h5 class="card-title">{{ item.comida }}</h5>
+                                    <h4 class="card-title">{{ item.comida }}</h4>
                                     <div class="ingredients">
-                                        <h2>Ingredientes:</h2>
+                                        <h6>Ingredientes:</h6>
                                         <ul>
                                         {% for ingrediente in item.codigo|primeros_5 %}
                                             <li>{{ ingrediente }}</li>

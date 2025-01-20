@@ -40,8 +40,6 @@
       </ul>
 <br>
     <h1>Pago movil</h1>
-    <br><br>
-    <h3>{{ nombre }}</h3>
     {% if error %}
     <<div
         class="alert alert-danger"
@@ -52,7 +50,7 @@
     {% endif %}
 
     {% if pago_restaurante %}
-    <h3>Datos pago movil del restaurante</h3>
+    <h3>Datos pago movil del restaurante {{ nombre }}</h3>
     <ul class="list-group list-group-flush">
         <li class="list-group-item">{{ pago_restaurante.banco }}</li>
         <li class="list-group-item">Telefono {{ pago_restaurante.telefono_pm }}</li>

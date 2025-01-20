@@ -13,7 +13,7 @@ class Restaurante(models.Model):
     rif = models.CharField(max_length=20,default="")
     email = models.EmailField(max_length=254,default="")
     telefono = models.CharField(max_length=11,default="")
-    direccion = models.CharField(max_length=50,default="")
+    direccion = models.CharField(max_length=50,default="0+0+20")
     fundacion = models.DateField(default=date.today)
     last_login = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
@@ -22,7 +22,6 @@ class Restaurante(models.Model):
 
     USERNAME_FIELD = 'email'  # Campo que se usará para el inicio de sesión
     REQUIRED_FIELDS = []
-    def __str__(self): return self.nombre
     
 class Ingredientes(models.Model):
     codigo = models.AutoField(primary_key=True)

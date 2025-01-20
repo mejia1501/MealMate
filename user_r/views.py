@@ -421,7 +421,7 @@ def PaypalView(request):
             if not paypal_instance:
                 paypal_instance = Paypal(restaurante=restaurante)
             form = PaypalForm(instance=paypal_instance)
-            return render(request, 'paypal.html', {'form': form})
+            return render(request, 'paypal.html', {'form': form,'nombre':restaurante.nombre})
 
     elif request.method == 'POST':
         if restaurante and restaurante.is_active:
@@ -457,7 +457,7 @@ def ZelleView(request):
             if not zelle_instance:
                 zelle_instance = Zelle(restaurante=restaurante)
             form = ZelleForm(instance=zelle_instance)
-            return render(request, 'zelle.html', {'form': form})
+            return render(request, 'zelle.html', {'form': form,'nombre':restaurante.nombre})
 
     elif request.method == 'POST':
         if restaurante and restaurante.is_active:

@@ -10,7 +10,9 @@ from geopy.distance import great_circle
 from geopy import distance
 from geopy.geocoders import Nominatim
 from django.utils import timezone
-
+import pytz #pip install pytz
+from datetime import datetime
+zona_horaria = pytz.timezone('America/Caracas')
 # Create your views here.
 def ayuda(request):
     return render(request,'ayuda.html')
@@ -56,7 +58,6 @@ def ResultadosView(request,texto):
                 for comida in comidas:
                     restaurante = Restaurante.objects.filter(id=comida['restaurante']).first()
                     mail = request.session.get('email')
-
                     if restaurante:
                         # Procesar la dirección del restaurante
                         direccion_r = restaurante.direccion.split("+")
@@ -78,8 +79,7 @@ def ResultadosView(request,texto):
                                 'pickup': pandd.active_pickup if pandd else False,
                                 'reservaciones': reservacion.active if reservacion else False,
                                 'distancia': round(distance.great_circle(direccion_r, cliente).km,2),
-                            }
-                            
+                            }                            
             else:
                 # Buscar coincidencias en 'Ingredientes'
                 ingredientes = Menu.objects.all()
@@ -114,7 +114,7 @@ def ResultadosView(request,texto):
                                     'reservaciones': reservacion.active if reservacion else False,
                                     'distancia': round(distance.great_circle(direccion_r, cliente).km,2),
                                 }
-
+            print(resultados)
                 # Eliminar duplicados usando unique_everseen 
             resultados_lista = list(resultados.values())
             resultados_lista=sorted(resultados_lista, key=lambda x: x['distancia'])
@@ -174,18 +174,20 @@ def PresentacionView(request,item):
 
 def DeliveryView(request, item):
     try:
-        item = int(item)  # Asegúrate de que 'item' sea un entero
-        request.session['restaurante']=item
-        # Asegúrate de que 'restaurante' en la sesión sea un entero
-        restaurante_sesion = request.session.get('restaurante')
-        if restaurante_sesion:
+        item = int(item)          
+        if 'restaurante' in request.session:
+            restaurante_sesion = request.session.get('restaurante')
+            restaurante_sesion = int(restaurante_sesion)
+        else:
+            request.session['restaurante']=item
+            restaurante_sesion = request.session.get('restaurante')
             restaurante_sesion = int(restaurante_sesion)
 
         restaurante = Restaurante.objects.get(id=item)
-
         if request.method == 'GET':
             # Si el pedido que se estaba llenando no era del mismo restaurante, vaciar las variables de sesión
-            if restaurante_sesion and restaurante_sesion != item:
+            if restaurante_sesion != int(restaurante.id):
+                print('funciona')
                 # Guardar el valor de la variable que deseas conservar
                 valor_a_conservar = request.session.get('email')
                 ubicacion = request.session.get('ubicacion')
@@ -207,22 +209,22 @@ def DeliveryView(request, item):
                     ubicacion_restaurante = obtener_direccion(coordenadas[0], coordenadas[1])
                     latitud = str(coordenadas[0])
                     longitud = str(coordenadas[1])
-
-                ubicacion = request.session.get('ubicacion')  
-                ubicacion = ubicacion.split("+")                 
-                ubicacion = obtener_direccion(ubicacion[0], ubicacion[1])
+                
 # Obtener la reservación y la hora actual
                 reservacion = Reservaciones_config.objects.filter(restaurante=restaurante.id).first()
-                hora_actual = timezone.now().strftime('%H:%M')
+                hora_actual = datetime.now(zona_horaria).strftime('%H:%M')
                 pandd = Pickup_Delivery.objects.filter(restaurante=restaurante.id).first()  
                 menu = Menu.objects.filter(restaurante=item)
 
                 # Obtener la ubicación del restaurante
                 ubicacion_restaurante = restaurante.direccion.split('+')
+                print(ubicacion_restaurante)
                 restaurante_u = (ubicacion_restaurante[0], ubicacion_restaurante[1])
                 cliente = request.session.get("ubicacion")
+                
                 cliente = cliente.split("+")
                 cliente = (cliente[0], cliente[1])
+                print(cliente)
 
                 # Calcular la distancia
                 distancia = round(great_circle(restaurante_u, cliente).km, 2)
@@ -262,7 +264,7 @@ def DeliveryView(request, item):
                         'restaurante': restaurante, 
                         'menu': menu,
                         'ubicacion_restaurante': ubicacion_restaurante,
-                        'ubicacion': ubicacion,
+                        'ubicacion': obtener_direccion(cliente[0],cliente[1]),
                         'id': str(restaurante.id),
                         'form': PedidoForm(),
                         'delivery': pandd.active_delivery if pandd else False,
@@ -273,11 +275,6 @@ def DeliveryView(request, item):
                         'longitud': longitud,
                     })
 
-    except Restaurante.DoesNotExist:
-        return render(request, 'delivery.html', {
-            'error': "El restaurante no se encontró.",
-            'id': item,
-        })
     except Exception as e:
         return render(request, 'delivery.html', {
             'error': f"Que extraño, no hay coincidencias. Recargue la página por favor. Error: {e}",
@@ -285,19 +282,20 @@ def DeliveryView(request, item):
         })
     
 def PickupView(request, item):
-    item = int(item)
-    request.session['restaurante']=item
-    # Asegúrate de que 'restaurante' en la sesión sea un entero
-    restaurante_sesion = request.session.get('restaurante')
-    if restaurante_sesion:
+    item = int(item)          
+    if 'restaurante' in request.session:
+        restaurante_sesion = request.session.get('restaurante')
         restaurante_sesion = int(restaurante_sesion)
-
+    else:
+        request.session['restaurante']=item
+        restaurante_sesion = request.session.get('restaurante')
+        restaurante_sesion = int(restaurante_sesion)
     try:
         restaurante = Restaurante.objects.get(id=item)
 
         if request.method == 'GET':
             # Si el pedido que se estaba llenando no era del mismo restaurante, vaciar las variables de sesión
-            if restaurante_sesion is not None and restaurante_sesion != item:
+            if restaurante_sesion  != int(restaurante.id):
                 # Guardar el valor de la variable que deseas conservar
                 valor_a_conservar = request.session.get('email')
                 ubicacion = request.session.get('ubicacion')
@@ -321,13 +319,13 @@ def PickupView(request, item):
             reservacion = Reservaciones_config.objects.filter(restaurante=restaurante.id).first()
             pandd = Pickup_Delivery.objects.filter(restaurante=restaurante.id).first()  
             menu = Menu.objects.filter(restaurante=item)
-            hora_actual = timezone.now().strftime('%H:%M')
+            hora_actual = datetime.now(zona_horaria).strftime('%H:%M')
             error = None
             pandd.p_end_time=pandd.p_end_time.strftime('%H:%M')
             pandd.p_start_time=pandd.p_start_time.strftime('%H:%M')
-
+            print(hora_actual)
             if hora_actual > pandd.p_end_time or hora_actual < pandd.p_start_time:
-                error = f'Estimado cliente, lamentamos informarle que el servicio de entrega a domicilio de este restaurante finaliza a las {pandd.p_end_time} y se reanuda a las {pandd.p_start_time}.'
+                error = f'Estimado cliente, lamentamos informarle que el servicio de pickup de este restaurante finaliza a las {pandd.p_end_time} y se reanuda a las {pandd.p_start_time}.'
               
             # Renderizar la respuesta
             if error:
@@ -349,8 +347,6 @@ def PickupView(request, item):
                 activo = 'elegidos2' in request.session
 
                 # Manejo de coordenadas
-                
-
                 return render(request, 'pickup.html', {
                     'ubicacion_restaurante': ubicacion_restaurante,
                     'restaurante': restaurante, 

@@ -366,13 +366,12 @@ def Registro_datos_view(request,id):
             ubicacion=request.session.get("ubicacion")
             ubicacion=ubicacion.split("+")
             ubicacion=obtener_direccion(ubicacion[0], ubicacion[1])
-
         return render(request, 'registro_datos.html', 
             {'form': form,
              'ubicacion': ubicacion if ubicacion else False,
              'item': restaurante.id,
              'nombre':restaurante.nombre,
-             'reservacion':request.session.get('reservacion'),
+             'reservacion':request.session.get('reservacion') if 'reservacion' in request.session else False,
              'type':request.session.get('type')#True=pickup, False=delivery
              })
     
@@ -438,6 +437,16 @@ def Registro_datos_view(request,id):
                     mesa=mesa,
                     nro_personas=int(personas),
                 )
+                if 'reservacion' in request.session:
+                    del request.session['reservacion']
+                if 'mesa' in request.session:
+                    del request.session['mesa']
+                if 'fecha' in request.session:
+                    del request.session['fecha']
+                if 'hora' in request.session:
+                    del request.session['hora']
+                if 'puestos' in request.session:
+                    del request.session['puestos']
 
                 nueva_reservacion.save()
                 return redirect('success')
@@ -513,6 +522,7 @@ def PagoMovilView(request, id):
         return render(request, 'pago_movil.html', {
             'item': restaurante.id,
             'pago_restaurante': pago_restaurante,
+            'nombre': restaurante.nombre,
             'form': form,
             'total': total,
             'bolivares':round(bolivares,2),
@@ -597,13 +607,7 @@ def PagoMovilView(request, id):
                 )
                 nuevo_pago.save() 
                     # Guardar el valor de la variable que deseas conservar
-                valor_a_conservar = request.session.get('email')
-                timestamp=request.session.get('timestamp')
-                    # Vaciar todas las variables de sesión
-                request.session.flush()
-                    # Restaurar la variable que deseas conservar
-                request.session['email'] = valor_a_conservar
-                request.session['timestamp'] = timestamp
+                delete_session()
                 return redirect('success')
             except Exception as e:
                 return render(request,'pago_movil.html',{
@@ -735,14 +739,7 @@ def ZellePagoView(request, id):
                     precio_dolar=cambio_dolar('1'), 
                 )
                 nuevo_pago.save() 
-                    # Guardar el valor de la variable que deseas conservar
-                valor_a_conservar = request.session.get('email')
-                timestamp=request.session.get('timestamp')
-                    # Vaciar todas las variables de sesión
-                request.session.flush()
-                    # Restaurar la variable que deseas conservar
-                request.session['email'] = valor_a_conservar
-                request.session['timestamp'] = timestamp
+                delete_session()
                 return redirect('success')
             except Exception as e:
                 return render(request,'zelle_pago.html',{
@@ -873,13 +870,7 @@ def PaypalPagoView(request, id):
                 )
                 nuevo_pago.save() 
                     # Guardar el valor de la variable que deseas conservar
-                valor_a_conservar = request.session.get('email')
-                timestamp=request.session.get('timestamp')
-                    # Vaciar todas las variables de sesión
-                request.session.flush()
-                    # Restaurar la variable que deseas conservar
-                request.session['email'] = valor_a_conservar
-                request.session['timestamp'] = timestamp
+                delete_session()
                 return redirect('success')
             except Exception as e:
                 return render(request,'paypal_pago.html',{
@@ -1046,13 +1037,7 @@ def EfectivoPagoView(request,id):
                     )
                     nuevo_pago.save() 
                         # Guardar el valor de la variable que deseas conservar
-                    valor_a_conservar = request.session.get('email')
-                    timestamp=request.session.get('timestamp')
-                        # Vaciar todas las variables de sesión
-                    request.session.flush()
-                        # Restaurar la variable que deseas conservar
-                    request.session['email'] = valor_a_conservar
-                    request.session['timestamp'] = timestamp
+                    delete_session()
                     return redirect('success')
                 
                 except Exception as e:
@@ -1494,3 +1479,15 @@ def obtener_direccion(param1,param2):
     geolocator = Nominatim(user_agent="MealMate")
     location = geolocator.reverse(f"{param1}, {param2}")
     return location.address
+
+def delete_session(request):
+    valor_a_conservar = request.session.get('email')
+    ubicacion = request.session.get('ubicacion')
+    timestamp=request.session.get('timestamp')
+             #vaciar todas las variables de sesión
+    request.session.flush()
+
+                # Restaurar la variable que deseas conservar
+    request.session['email'] = valor_a_conservar
+    request.session['ubicacion'] = ubicacion
+    request.session['timestamp'] = timestamp

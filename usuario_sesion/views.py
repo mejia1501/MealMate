@@ -11,7 +11,21 @@ from django.contrib import messages
 # Define el tiempo límite en días para borrar las variables de sesión
 TIEMPO_LIMITE = 20  # 20 días
 
+def eliminar_session(request):
+    if 'registro' in request.session:
+        del request.session['registro']
+    if 'nombre' in request.session:
+        del request.session['nombre']
+    if 'identificacion' in request.session:
+        del request.session['identificacion']
+    if 'mail' in request.session:
+        del request.session['mail']
+    if 'telefono' in request.session:
+        del request.session['telefono']
+
 def iniciar_sesion(request):
+    
+    eliminar_session()
     # Establecer el timestamp si no existe
     if 'timestamp' not in request.session:
         request.session['timestamp'] = timezone.now().isoformat()  # Almacenar como cadena
@@ -98,6 +112,7 @@ def logout(request):
     return HttpResponse("No se logró cerrar la cuenta")
 
 def registro_restaurante(request):
+    eliminar_session()
     if request.method == 'GET':
         return render(request, 'user2/registro_restaurante.html', {
             'form': CreateNewRestauranteForm(),
@@ -146,6 +161,7 @@ def registro_restaurante(request):
             })
 
 def registro_cliente(request):
+    eliminar_session()
     if request.method == 'GET':
         return render(request, 'registro_cliente.html', {
             'form': CreateNewClientForm(),
