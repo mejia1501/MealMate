@@ -1,0 +1,3 @@
+“MealMate”, es una app web con opciones de delivery, reservaciones, pick up y una interfaz intuitiva con un diseño sencillo y de contenido claro, para que los usuarios tengan una navegación fácil y fluida.
+
+El diseño y el desarrollo de este proyecto se obtuvieron mediante el uso de lenguajes de programación como Python (versión 3.12.6) para el BackEnd y la lógica del sistema, HTML5 y CSS3 para el diseño y estructura del FrontEnd, utilizando como estructura base del código un framework especializado en mejorar la eficiencia de creación de páginas y aplicaciones web en Python, llamado Django (versión 5.1.2).
