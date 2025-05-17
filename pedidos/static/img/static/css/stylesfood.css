@@ -1,0 +1,592 @@
+@import url('https://fonts.googleapis.com/css2?family=Lobster&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css");
+@import url('https://fonts.cdnfonts.com/css/bodoniflf');
+
+html {
+    font-size: 62.5%;
+    font-family: 'Poppins', 'sans-serif';
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+
+}
+
+/*utilidades*/
+
+.container {
+    max-width: 120rem;
+    margin: 0 auto;
+}
+
+img{
+    max-width: 100%;
+}
+
+.ocultar {
+    display: none;
+}
+
+.btn-cerrar {
+    font-size: 2rem;
+    font-weight: bold;
+    color: white;
+    position: absolute;
+    top: 0;
+    left: 50px;
+    user-select: none;
+}
+
+.pantalla-completa {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background-color: rgba(0,0,0,.5);
+    z-index: 4;
+}
+
+@keyframes desplazamiento {
+    0%{
+        transform: translateX(-100%);
+    }
+
+    100%{
+        transform: translateX(0);
+    }
+}
+
+.btn-cerrar:hover {
+    cursor: pointer;
+}
+
+.btn{
+    text-decoration: none;
+    color: white;
+    font-size: 2rem;
+    text-transform: capitalize;
+    padding: 1rem 5rem;
+    border-radius: 5px;
+    transition: all .3s ease-in-out;
+}
+
+/*header*/
+.container-hero {
+    background-color:#ffb703;
+}
+
+.hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+}
+
+.customer-support {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.customer-support i {
+    font-size: 3.3rem;
+}
+
+.content-customer-support {
+    display: flex;
+    flex-direction: column;
+}
+
+.container-logo {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+
+/*logo*/
+
+.logo {
+    position: relative;
+    max-width: 30%;
+    left: 80px;
+}
+
+.container-user {
+    display: flex;
+    gap: 1rem;
+    cursor: pointer;
+    border-radius: 20px; /* Bordes más redondeados */
+}
+
+.container-user .bi-person-fill {
+    font-size: 3rem;
+    color: black;
+    padding-right: 2rem;
+    border-right: 1px solid black;
+    
+}
+
+.container-user .bi-cart-fill {
+    font-size: 3rem;
+    color: black;
+    padding-left: 1rem;
+}
+
+.container-user .bi-person-fill:hover {
+    transition: transform 0.3s; /* Transición para el efecto de movimiento */
+    transform: scale(1.05); /* Movimiento hacia adelante al pasar el cursor */
+    box-shadow: 0 0 20px 0 rgba(255, 255, 255, 1);
+}
+
+.container-user .bi-cart-fill:hover {
+    transition: transform 0.3s; /* Transición para el efecto de movimiento */
+    transform: scale(1.05); /* Movimiento hacia adelante al pasar el cursor */
+    box-shadow: 0 0 20px 0 rgba(255, 255, 255, 1);
+}
+
+.content-shopping-cart {
+    display: flex;
+    flex-direction: column;
+}
+
+.btn-orange{
+    background-color: #fb8500;
+    border: none;
+    display: inline-block;
+    margin-bottom: 2rem;
+    font-family: 'Mulish', sans-serif;
+}
+.btn-orange:hover{
+    transform: scale(1.05);
+    background-color: #ffb703;
+}
+
+/*navbar*/
+.container-navbar {
+    background-color: #fb8500;
+    position: relative;
+    z-index: 5;
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2rem 0;
+
+}
+
+.navbar .menu a {
+    color: white;
+}
+
+.menu a {
+    text-decoration: none;
+    font-size: 2rem;
+    padding: 1rem;
+    padding-right: 4rem;
+    display: block;
+    transition: color .3s ease-in-out;
+    text-align: center;
+}
+
+@media(min-width: 768px) {
+    .menu a {
+        text-align: center;
+    }
+}
+
+.menu a:nth-child(even):hover{
+    color:orange;
+}
+
+.menu a:nth-child(odd):hover {
+    color: orange;
+}
+
+.menu a:first-of-type {
+    margin-top: 5rem;
+}
+
+.menu {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 40rem;
+    padding: 3rem 4rem;
+    background-color: black;
+    gap: 2rem;
+    animation: desplazamiento .5s ease-in-out;
+}
+
+
+.search-form {
+    position: relative;
+    display: flex;
+    align-items: center;
+    border: 2px solid #fff;
+    border-radius: 2rem;
+    background-color: #fff;
+    height: 4.4rem;
+    overflow: hidden;
+}
+
+.search-form input {
+    outline: none;
+    font-family: inherit;
+    border: none;
+    width: 25rem;
+    font-size: 1.4rem;
+    padding: 0 2rem;
+    color: #777;
+    cursor: pointer;
+}
+
+.search-form input::-webkit-search-cancel-button {
+    appearance: none;
+}
+
+.search-form .btn-search {
+    border: none;
+    background-color: #fb8500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 3rem;
+}
+
+.btn-search i {
+    font-size: 2rem;
+    color: #fff;
+}
+
+/*banner*/
+.banner { 
+    position: relative;
+}
+
+.banner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,.5);
+}
+
+.content-banner {
+    position: absolute;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'BodoniFLF', sans-serif;
+}
+
+.content-banner h1 {
+    font-size: 4rem;
+    color: white;
+}
+@media(min-width: 768px) {
+    .content-banner h1 {
+        font-size: 15rem;
+    }
+}
+
+.hamburguesa:hover{
+    cursor: pointer;
+}
+
+.hamburguesa span{
+    background-color: #fff;
+    display: block;
+    width: 5rem;
+    height: .6rem;
+    margin-bottom: .5rem;
+}
+
+.separador {
+    background-image: url('/assets/paella.png');
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    position: relative;
+    z-index: 2;
+}
+
+.separador::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,.5);
+    z-index: -1;
+}
+
+.contenido-separador {
+    padding: 5rem;
+}
+
+.contenido-separador h2 {
+    font-style: 5rem;
+    color: white;
+    text-align: center;
+    font-family: 'Mulish', sans-serif;
+}
+@media(min-width: 768px) {
+    .contenido-separador h2 {
+        font-size: 8rem;
+    }
+}
+
+.mena {
+    list-style: none; /* Elimina los puntos de la lista */
+    padding: 0; /* Elimina el relleno interno */
+    display: flex; /* Alineación horizontal de los elementos */
+    justify-content: center; /* Centra los elementos del menú */
+    margin-top: 10px; /* Reducir el espacio superior */
+}
+
+.mena-item {
+    padding: 15px 20px; /* Relleno interno de los elementos del menú */
+    margin: 0 10px; /* Espacio entre los elementos del menú */
+    cursor: pointer; /* Cambia el cursor al pasar sobre el elemento */
+    background-color: #fff; /* Color de fondo del elemento */
+    transition: transform 0.3s; /* Transición para el efecto de movimiento */
+    border: 1px solid #ddd; /* Borde del elemento */
+    border-radius: 20px; /* Bordes más redondeados */
+}
+
+.mena-item:hover {
+    transform: scale(1.05); /* Movimiento hacia adelante al pasar el cursor */
+    background-color: #f0f0f0; /* Cambio de color de fondo al pasar el cursor */
+}
+
+.mena-item a {
+    text-decoration: none; /* Elimina el subrayado de los enlaces */
+    color: black; /* Color del texto del enlace */
+}
+
+.mena-item a:focus,
+.mena-item a:active {
+    outline: none; /* Elimina el borde azul al hacer clic o al tener el enfoque */
+}
+
+.food-details {
+    display: flex; /* Alineación horizontal de los elementos */
+    flex-direction: column; /* Alineación vertical de las filas */
+    gap: 20px; /* Espacio entre las filas */
+    margin-top: 65px;
+}
+
+.food-row {
+    display: flex; /* Alineación horizontal de los elementos */
+    justify-content: center; /* Centra los elementos */
+    gap: 20px; /* Espacio entre los elementos */
+    margin-bottom: 45px; /*Espacio para que las comidas no choquen*/
+}
+
+.food-item {
+    position: relative; /* Posicionamiento relativo */
+    display: flex; /* Alineación en bloque */
+    flex-direction: column; /* Coloca los elementos en una columna */
+    margin: 20px 0; /* Espacio alrededor de cada elemento */
+    text-align: left; /* Alineación del texto a la izquierda */
+    border: 1px solid #ddd; /* Borde del elemento */
+    border-radius: 20px; /* Bordes más redondeados */
+    background-color: #fff; /* Color de fondo */
+    padding: 70px 10px 10px; /* Relleno interno ajustado para dejar espacio al nombre */
+    width: 200px; /* Ancho del elemento ajustado */
+    transition: transform 0.3s; /* Transición para el efecto de movimiento */
+    overflow: visible; /* Asegura que la imagen se sobresalga */
+}
+
+.food-item img {
+    width: 150px; /* Ancho de la imagen ajustado */
+    height: 150px; /* Altura de la imagen ajustada */
+    border-radius: 50%; /* Forma de círculo */
+    position: absolute; /* Posicionamiento absoluto */
+    top: -75px; /* Ajuste de la posición superior */
+    left: 50%; /* Centrado horizontal */
+    transform: translateX(-50%); /* Centrado preciso */
+    border: 3px solid #fff; /* Borde blanco alrededor de la imagen */
+    object-fit: cover; /* Mantiene las proporciones de la imagen */
+}
+
+.food-item p {
+    text-align: center; /* Alineación del nombre del plato al centro */
+    margin-top: 20px; /* Espacio superior para dejarlo justo debajo de la imagen */
+    font-size: 1.2em; /* Tamaño de la fuente */
+    color: #333; /* Color del texto */
+}
+
+.ingredients {
+    background-color: #f8f8f8; /* Color de fondo del cuadro de ingredientes */
+    padding: 10px; /* Relleno interno */
+    border-radius: 20px; /* Bordes más redondeados */
+    text-align: left; /* Alineación del texto a la izquierda */
+}
+
+.ingredients h2 {
+    font-size: 1em; /* Tamaño de la letra más pequeño */
+}
+
+.food-item:hover {
+    transform: scale(1.05); /* Movimiento hacia adelante al pasar el cursor */
+}
+
+button {
+    display: block; /* El botón se muestra como un bloque */
+    margin-top: 10px; /* Espacio superior */
+    padding: 10px; /* Relleno interno */
+    width: 50px; /* Ancho del botón ajustado para ser cuadrado */
+    height: 50px; /* Altura del botón ajustado para ser cuadrado */
+    background-color: #ff6347; /* Color de fondo del botón */
+    color: white; /* Color del texto */
+    border: none; /* Sin borde */
+    cursor: pointer; /* Cambia el cursor al pasar sobre el botón */
+    border-radius: 5px; /* Bordes redondeados */
+    text-align: center; /* Alineación del texto */
+    line-height: px; /* Altura de la línea para centrar el texto */
+}
+
+button:hover {
+    background-color: #ff4500; /* Cambio de color de fondo al pasar el cursor */
+}
+
+.footer {
+    background: #fb8500;
+    text-align: center;
+}
+
+.footer .share {
+    padding: 1rem 0;
+    height: 5rem;
+    display: flex;
+    justify-content: center;
+}
+
+.footer .share a {
+    height: 5rem;
+    width: 5rem;
+    line-height: 5rem;
+    font-size: 2rem;
+    border: #777;
+    margin: .3rem;
+    border-radius: 50%;
+    
+}
+
+.footer .share .bi-facebook {
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    color: #fff;
+    background-color: #1900fa;
+    transition: transform 0.3s
+}
+
+.footer .share .bi-facebook:hover {
+    transform: scale(1.08);
+}
+
+.footer .share .bi-instagram {
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    color: #fff;
+    background: linear-gradient(45deg, #7e09c2, #e02040);
+    transition: transform 0.3s
+}
+
+.footer .share .bi-instagram:hover{
+    transform: scale(1.08);
+}
+
+.footer .share .bi-youtube {
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    color: #e02040;
+    background: white;
+    transition: transform 0.3s
+}
+
+.footer .share .bi-youtube:hover {
+    transform: scale(1.08);
+}
+
+.footer .share .bi-twitter-x {
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    color: #fff;
+    background-color: black;
+    transition: transform 0.3s
+}
+
+.footer .share .bi-twitter-x:hover {
+    transform: scale(1.08);
+}
+
+.footer .share a:hover {
+    background-color: #ffb703;
+}
+
+.footer .links {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 2rem 0;
+    gap: 1rem;
+}
+
+.footer .links a {
+    padding: .7rem 2rem;
+    color: #fff;
+    border: #777;
+    font-size: 2rem;
+}
+
+.footer .links a:hover {
+    background-color: #ffb703;
+}
+
+.footer .credit {
+    font-size: 2rem;
+    color: #fff;
+    font-weight: lighter;
+    padding: 1.5rem;
+}
+
+.footer .credit span {
+    color: black;
+}

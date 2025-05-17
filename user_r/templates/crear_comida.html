@@ -20,7 +20,7 @@
         >
             <strong>Error</strong> {{ error }}</div>
             {% endif %}
-        <form method="POST" > 
+        <form method="POST" enctype="multipart/form-data"> 
             {% csrf_token %}         
             {{ form }}
                

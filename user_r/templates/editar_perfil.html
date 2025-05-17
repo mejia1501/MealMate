@@ -19,12 +19,18 @@
     <a href="{% url 'menu' %}"><button id="tab-2" name="tab" value="menu">Menú</button></a>
    <a href="{% url 'paypal' %}"><button id="tab-3" name="tab" value="pago">Metodos de pago</button></a>
    <a href="{% url 'activate_d' %}"><button id="tab-4" name="tab" value="servicios">Servicios</button></a>
-
+   
+   {% if img %}
+            <div class="text-center mb-3">
+                <img  width="200rem"  src="{{ img.url }}" alt="Logo" class="img-fluid">
+            </div>
+        {% endif %}
     <!-- Formulario para editar perfil -->
     <h1>{{ nombre }}</h1>
-    <form method="POST" action="{% url 'editar-perfil' %}"> 
+    <form method="POST" action="{% url 'editar-perfil' %}"  enctype="multipart/form-data"> 
         {% csrf_token %} 
         {{ form.as_p }} 
+        
         <br>Fundación: 
         <input type="date" 
                {% if date %} value="{{ date }}"{% endif %} 

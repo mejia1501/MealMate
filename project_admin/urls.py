@@ -18,6 +18,8 @@ from django.contrib import admin
 from django.urls import path, include
 from usuario_sesion import views as usuario_sesion_views
 from user_r import views as user_r_views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -30,5 +32,8 @@ urlpatterns = [
     path('perfil-restaurante/', user_r_views.cuenta, name="perfil-restaurante"),  # Perfil restaurante
     path('logout/', usuario_sesion_views.logout, name="logout"),
     path('login/', usuario_sesion_views.iniciar_sesion, name="login"),
-    
+    path('notifications/',usuario_sesion_views.NotificacionesView, name='notificaciones')
 ]
+
+if settings.DEBUG:
+    urlpatterns+=  static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

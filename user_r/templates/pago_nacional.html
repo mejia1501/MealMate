@@ -1,63 +1,61 @@
 {% extends 'nav.html' %}
+
 {% block content %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <title>Pago nacional de {{ nombre }}</title>
-
 </head>
 <body>
-    <h1>{{ nombre }}'s Menu</h1>
-    {% if error %}
-        <p>{{ error }}</p>
-    {% endif %}
+    <div class="container mt-4">
+        <h1 class="text-center">{{ nombre }}'s Menu</h1>
+        
+        {% if error %}
+            <div class="alert alert-danger" role="alert">{{ error }}</div>
+        {% endif %}
        
-<!-- Formulario para los botones de navegación -->
+        <!-- Formulario para los botones de navegación -->
+        <div class="text-center mb-4">
+            <a href="{% url 'perfil-restaurante' %}" class="btn btn-secondary" id="tab-1" name="tab" value="datos">Datos</a>
+            <a href="{% url 'menu' %}" class="btn btn-secondary" id="tab-2" name="tab" value="menu">Menú</a>
+            <button class="btn btn-secondary" id="tab-3" name="tab" value="pago" disabled>Métodos de pago</button>
+            <a href="{% url 'activate_d' %}" class="btn btn-secondary" id="tab-4" name="tab" value="servicios">Servicios</a><br>
+            <button class="btn btn-secondary" id="tab-4" name="tab" value="nacional" disabled>Pago Nacional</button>
+            <a href="{% url 'paypal' %}" class="btn btn-secondary" id="tab-5" name="tab" value="paypal">Paypal</a>
+            <a href="{% url 'zelle' %}" class="btn btn-secondary" id="tab-6" name="tab" value="zelle">Zelle</a>
+        </div>
 
-    <a href="{% url 'perfil-restaurante' %}"><button id="tab-1" name="tab" value="datos" >Datos</button></a>
-    <a href="{% url 'menu' %}"><button id="tab-2" name="tab" value="menu">Menú</button></a>
-    <button id="tab-3" name="tab" value="pago" disabled>Metodos de pago</button>
-    <a href="{% url 'activate_d' %}"><button id="tab-4" name="tab" value="servicios">Servicios</button></a>
-    <br><br>
-        
-            <button disabled type="button" id="tab-4" name="tab" value="nacional">Pago Nacional</button>
-        
-        <a href="{% url 'paypal' %}"><button  id="tab-5" name="tab" value="paypal">Paypal</button></a>
-        <a href="{% url 'zelle' %}">
-            <button type="button" id="tab-6" name="tab" value="zelle">Zelle</button>
-        </a>
-
-    <div class="container mt-5">
-        <h1>Pago Nacional</h1>
-        <br>
-        <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
-            <symbol id="info-fill" viewBox="0 0 16 16">
-              <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/>
-            </symbol>
-          </svg>
-          <div class="alert alert-danger d-flex align-items-center" role="alert">
-            <svg class="bi flex-shrink-0 me-2" role="img" aria-label="Info:" style="width: 2em; height: 2em;"><use xlink:href="#info-fill"/></svg>
-            <div>
-              Para brindar mayor seguridad a nuestros usuarios, el RIF que proporciono será el mismo utilizado para que los clientes realicen el pago móvil
+        <div class="mt-5">
+            <h2 class="text-center">Pago Nacional</h2>
+            <br>
+            <div class="alert alert-danger d-flex align-items-center" role="alert">
+                <svg xmlns="http://www.w3.org/2000/svg" class="bi flex-shrink-0 me-2" role="img" aria-label="Info:" style="width: 2em; height: 2em;">
+                    <symbol id="info-fill" viewBox="0 0 16 16">
+                        <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/>
+                    </symbol>
+                    <use xlink:href="#info-fill"/>
+                </svg>
+                <div>
+                    Para brindar mayor seguridad a nuestros usuarios, el RIF que proporciono será el mismo utilizado para que los clientes realicen el pago móvil.
+                </div>
             </div>
-          </div>
           
-        <form method="post">
-            {% csrf_token %}
+            <form method="post">
+                {% csrf_token %}
                 <div class="form-group">
                     {{ form.as_p }}
                 </div>
-            <button type="submit" class="btn btn-primary">Guardar</button>
-        </form>
-        {% if error %}
-            <div class="alert alert-danger">{{ error }}</div>
-        {% endif %}
+                <button type="submit" class="btn btn-primary">Guardar</button>
+            </form>
+        </div>
     </div>
 
-
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
-
-{% endblock %}   
+{% endblock %}

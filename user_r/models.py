@@ -8,21 +8,33 @@ class Restaurante(models.Model):
     id=models.AutoField(primary_key=True)
     username=models.CharField(max_length=150,default="")
     nombre = models.CharField(max_length=20,default="")
-    password1 = models.CharField(max_length=18,default="")
-    password2=models.CharField(max_length=18,default="")
+    password = models.CharField(max_length=128,default="")
     rif = models.CharField(max_length=20,default="")
-    email = models.EmailField(max_length=254,default="")
+    email = models.EmailField(max_length=100,default="", unique=True)
     telefono = models.CharField(max_length=11,default="")
     direccion = models.CharField(max_length=50,default="0+0+20")
     fundacion = models.DateField(default=date.today)
     last_login = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
     date_joined = models.DateTimeField(default=timezone.now)
-    logo=models.CharField(max_length=100,default='default_logo.jpg')
+    logo=models.ImageField(upload_to='restaurantes',null=True)#python -m pip install Pillow
 
     USERNAME_FIELD = 'email'  # Campo que se usará para el inicio de sesión
     REQUIRED_FIELDS = []
     
+
+class Cliente(models.Model):
+    id = models.AutoField(primary_key=True)
+    username = models.CharField(max_length=18)  # Asegúrate de que el username sea único
+    nombre = models.CharField(max_length=40)
+    password = models.CharField(max_length=128)  # Cambiado a un solo campo para la contraseña
+    cedula = models.CharField(max_length=8)
+    email = models.EmailField(max_length=100, unique=True)  # Asegúrate de que el email sea único
+    telefono = models.CharField(max_length=11)
+    last_login = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=True)
+    date_joined = models.DateTimeField(default=timezone.now)
+
 class Ingredientes(models.Model):
     codigo = models.AutoField(primary_key=True)
     ingrediente = models.CharField(max_length=20)
@@ -31,6 +43,7 @@ class Ingredientes(models.Model):
     
 class Menu(models.Model):
     restaurante=models.ForeignKey(Restaurante,on_delete=models.CASCADE)
+    img=models.ImageField(upload_to='comida',null=True)
     comida = models.TextField(max_length=2750)
     precios = models.TextField(max_length=360)
     codigo = models.CharField(max_length=360)

@@ -8,28 +8,60 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <title>{{ nombre }}</title>
 </head>
 <body>
+    <div class="container mt-4">
+        <h1 class="text-center">{{ nombre }}</h1>
+
+        <!-- Botones de navegación -->
+        <div class="text-center mb-4">
+            <button disabled id="tab-1" class="btn btn-secondary" name="tab" value="datos">Datos</button>
+            <a href="{% url 'menu' %}" class="btn btn-primary" id="tab-2" name="tab" value="menu">Menú</a>
+            <a href="{% url 'paypal' %}" class="btn btn-primary" id="tab-3" name="tab" value="pago">Métodos de pago</a>
+            <a href="{% url 'activate_d' %}" class="btn btn-primary" id="tab-4" name="tab" value="servicios">Servicios</a>
+        </div>
+
+        <h3>Datos del restaurante</h3>
+
+        {% if img %}
+            <div class="text-center mb-3">
+                <img  width="200rem"  src="{{ img.url }}" alt="Logo" class="img-fluid">
+            </div>
+        {% endif %}
+
+        {% if restaurante %}
+            <div class="form-group">
+                <label for="fundacion">RIF</label><br>
+                <input type="text" value="{{ restaurante.rif }}" readonly>
+            </div>
+            <div class="form-group">
+                <label for="fundacion">Telefono</label><br>
+                <input type="text" value="{{ restaurante.telefono }}" readonly>
+            </div>
+        {% endif %}
+
+        {% if date %}
+            <div class="form-group">
+                <label for="fundacion">Fundación</label>
+                <input type="date" class="form-control" id="fundacion" name="fundacion" {% if date %} value="{{ date }}"{% endif %} readonly>
+            </div>
+        {% endif %}
+        <!-- Tamaño del mapa -->
+        {% if latitud or longitud %}
+            {% include 'ubicacion_restaurante.html' %}
+        {% endif %}
+
+        <div class="text-center mt-4">
+            <a name="Modificar" class="btn btn-success" href="{% url 'editar-perfil' %}" role="button">Modificar</a>
+        </div>
+    </div>
+
     
-    <h1>{{ nombre }}</h1>
-<!-- Formulario para los botones de navegación -->
-<button disabled id="tab-1" name="tab" value="datos">Datos</button>
-<a href="{% url 'menu' %}"><button id="tab-2" name="tab" value="menu">Menú</button></a>
-<a href="{% url 'paypal' %}"><button id="tab-3" name="tab" value="pago">Métodos de pago</button></a>
-<a href="{% url 'activate_d' %}"><button id="tab-4" name="tab" value="servicios">Servicios</button></a>
-<br><br>
-<h3>Datos del restaurante</h3><br>c
-{{ form.as_p }}
-{% if date %}
-Fundacion 
-<input type="date" {% if date %} value="{{ date }}"{% endif %} name="fundacion" readonly>
-{% endif %}
-<!-- Tamaño del mapa -->
- {% if latitud or longitud %}
-{% include 'ubicacion_restaurante.html' %}
-{% endif %}
-<a name="Modificar" class="btn btn-primary" href="{% url 'editar-perfil' %}" role="button">Modificar</a> 
 </body>
 </html>
 {% endblock %}

@@ -1,84 +1,81 @@
 {% extends 'nav.html' %}
 {% load static %}
 {% load custom_filters_principal %}
+
 {% block content %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MealMate</title>
+
+    <!-- Fuentes y estilos -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.cdnfonts.com/css/bodoniflf" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/stylesfood.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Anton+SC&family=Lobster&family=Oswald:wght@200..700&family=Sofadi+One&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <title>MealMate - {{ restaurante.nombre }}</title>
 </head>
 <body>
-    <div class="container">
-        <h1 class="mt-4">{{ restaurante.nombre }}</h1>
-        <br>
-        <ul>
-            <li>Desde: {{ restaurante.fundacion }}</li>
-           
-            <li>Teléfono: {{ restaurante.telefono }}</li>
-       
-        
-    </div>
-
-    {% include 'ubicacion_restaurante.html' %}
-
-</ul>
-        <div class="btn-group mb-4" role="group" aria-label="Basic outlined example">
-            {% if delivery %}
-                <a href="{% url 'presentacion_one' id %}"><button type="button" class="btn btn-outline-primary">Delivery</button></a>
-            {% endif %}
-            {% if pickup %}
-                <button disabled type="button" class="btn btn-outline-primary">Pickup</button>
-            {% endif %}
-            {% if reservaciones %}
-                <a href="{% url 'presentacion_two' id %}"><button type="button" class="btn btn-outline-primary">Reservaciones</button></a>
-            {% endif %}
-
-        </ul>
+    <main>
+        <h1 class="background-title">{{ restaurante.nombre }}</h1>
+        <div class="container">
+            <br>
+            <ul>
+                <li>Desde: {{ restaurante.fundacion }}</li>
+                <li>Teléfono: {{ restaurante.telefono }}</li>
+                {% include 'ubicacion_restaurante.html' %}
+            </ul>
         </div>
 
-        <h3>Menu</h3>
+       
+        <div class="btn-group mb-4" role="group" aria-label="Opciones de servicio">
+            {% if delivery %}
+                <a href="{% url 'presentacion_one' id %}" class="btn btn-outline-primary me-2">Delivery</a>
+            {% endif %}
+            {% if pickup %}
+                    <button type="button" class="btn btn-outline-primary me-2" aria-disabled="true" disabled>Pickup</button>
+            {% endif %}
+            {% if reservaciones %}
+                      <a href="{% url 'presentacion_two' id %}" class="btn btn-outline-primary">Reservaciones</a>
+            {% endif %}
+        </div>
+        
         {% if menu %}
-            <div class="row">
+        <h3>Menu</h3>
+        <section class="food-details">
+            <div class="food-row">
                 {% for item in menu %}
-                    <div class="col-md-4 mb-3">
-                        <form method="post">
-                            {% csrf_token %}
-                            <div class="card">
-                                <img src="..." class="card-img-top" alt="{{ item.comida }}">
-                                <div class="card-body">
-                                    <h4 class="card-title">{{ item.comida }}</h4>
-                                    <div class="ingredients">
-                                        <h6>Ingredientes:</h6>
-                                        <ul>
-                                        {% for ingrediente in item.codigo|primeros_5 %}
-                                            <li>{{ ingrediente }}</li>
-                                        {% endfor %}
-                                        </ul>
-                                    </div>
-                                    <h5><strong>Precio  </strong>$ {{ item.precios }}</h5>
-                                    <div class="d-grid gap-2">
-                                        <!--COn este boton se accede a la pagina flotante-->
-                                        
-                                        <a href="{% url 'agregar_pedido2' id item.item %}">
-                                            <button type="button">
-                                                Agregar
-                                            </button>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="food-item">
+                        {{ item.img }}
+                        <img src="#" alt="Onigirazu">
+                        <p alt="{{ item.comida }}">{{ item.comida }}</p>
+                        <div class="ingredients">
+                            <h2>Ingredientes:</h2>
+                            <ul>
+                                {% for ingrediente in item.codigo|primeros_5 %}
+                                    <li>{{ ingrediente }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <h5><strong>Precio</strong> $ {{ item.precios }}</h5>
+                        <a href="{% url 'agregar_pedido2' id item.item %}">
+                            <button type="button">+</button>
+                        </a>
                     </div>
-                
+                </form>
+                {% endfor %}
             </div>
-            {% endfor %}
+        </section>
         {% else %}
-        {% if error %}
+            {% if error %}
             <div class="alert alert-warning" role="alert">
                 <h4 class="alert-heading">Error</h4>
                 <hr />
@@ -87,11 +84,15 @@
             {% endif %}
         {% endif %}
     </div>
+
     {% if activo %}
-    <a href="{% url 'pedidos2' id %}"><button type="button" class="btn btn-primary">Ver Pedido</button></a>
+    <a href="{% url 'pedidos2' id %}">
+        <button type="button" class="btn btn-primary">Ver Pedido</button>
+    </a>
     {% endif %}
-    
-    
+    </main>
+    <br><br>
+    {% include 'footer.html' %}
 </body>
 </html>
 {% endblock %}

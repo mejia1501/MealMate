@@ -1,15 +1,14 @@
 from django.shortcuts import render,redirect
 from django.urls import reverse
 from django.core.paginator import Paginator
-from user_r.models import Restaurante,Menu,Ingredientes,Pago,Paypal,Zelle
+from user_r.models import Restaurante,Menu,Ingredientes
 from servicios.models import Reservaciones_config,Pickup_Delivery
-from .forms import BarraBusqueda,PedidoForm,UbicacionForm
+from .forms import BarraBusqueda,PedidoForm
 from pedidos.views import cambio_dolar
 from geopy.distance import great_circle
 #pip install geopy
 from geopy import distance
 from geopy.geocoders import Nominatim
-from django.utils import timezone
 import pytz #pip install pytz
 from datetime import datetime
 zona_horaria = pytz.timezone('America/Caracas')
@@ -17,10 +16,9 @@ zona_horaria = pytz.timezone('America/Caracas')
 def ayuda(request):
     return render(request,'ayuda.html')
 
-
-
 def InicioView(request):
-
+    mail=request.session.get('email')
+    print(mail)
     if request.method == "GET":
         return render(request, 'home.html', {
             'busqueda': BarraBusqueda(),
@@ -29,7 +27,7 @@ def InicioView(request):
     else:
         request.session.pop('ubicacion', None)
         form = BarraBusqueda(request.POST)
-        if 'ubicacion'  not in request.session and form.is_valid():
+        if 'ubicacion'  not in request.session and form.is_valid():#si no hay una ubicacion registrada en las variables de sesion
             request.session['busqueda'] = form.cleaned_data['texto']
             return redirect('ubicacion',id=0)
         
@@ -74,6 +72,7 @@ def ResultadosView(request,texto):
                                 'comida': comida['comida'],
                                 'restaurante_nombre': restaurante.nombre,
                                 'ubicacion': ubicacion,
+                                'img': restaurante.logo,
                                 'id':restaurante.id,
                                 'delivery': pandd.active_delivery if pandd else False,
                                 'pickup': pandd.active_pickup if pandd else False,
@@ -191,14 +190,12 @@ def DeliveryView(request, item):
                 # Guardar el valor de la variable que deseas conservar
                 valor_a_conservar = request.session.get('email')
                 ubicacion = request.session.get('ubicacion')
-                timestamp=request.session.get('timestamp')
              #vaciar todas las variables de sesión
                 request.session.flush()
 
                 # Restaurar la variable que deseas conservar
                 request.session['email'] = valor_a_conservar
                 request.session['ubicacion'] = ubicacion
-                request.session['timestamp'] = timestamp
 
             # Verificar si la ubicación está en la sesión
             if not request.session.get("ubicacion"):
@@ -233,12 +230,12 @@ def DeliveryView(request, item):
                 error = None
                 pandd.d_end_time=pandd.d_end_time.strftime('%H:%M')
                 pandd.d_start_time=pandd.d_start_time.strftime('%H:%M')
-
-                if float(distancia) > float(ubicacion_restaurante[2]):
-                    error = f'Estimado cliente, lamentamos informarle que este restaurante no acepta pedidos de entrega a domicilio para ubicaciones que superen una distancia de {ubicacion_restaurante[2]} km.'
-                elif hora_actual > pandd.d_end_time or hora_actual < pandd.d_start_time:
-                    error = f'Estimado cliente, lamentamos informarle que el servicio de entrega a domicilio de este restaurante finaliza a las {pandd.d_end_time} y se reanuda a las {pandd.d_start_time}.'
-              
+                if ubicacion_restaurante[2]:
+                    if float(distancia) > float(ubicacion_restaurante[2]):
+                        error = f'Estimado cliente, lamentamos informarle que este restaurante no acepta pedidos de entrega a domicilio para ubicaciones que superen una distancia de {ubicacion_restaurante[2]} km.'
+                    elif hora_actual > pandd.d_end_time or hora_actual < pandd.d_start_time:
+                        error = f'Estimado cliente, lamentamos informarle que el servicio de entrega a domicilio de este restaurante finaliza a las {pandd.d_end_time} y se reanuda a las {pandd.d_start_time}.'
+                
                 # Renderizar la respuesta
                 if error:
                     return render(request, 'delivery.html', {
@@ -299,14 +296,12 @@ def PickupView(request, item):
                 # Guardar el valor de la variable que deseas conservar
                 valor_a_conservar = request.session.get('email')
                 ubicacion = request.session.get('ubicacion')
-                timestamp=request.session.get('timestamp')
              #vaciar todas las variables de sesión
                 request.session.flush()
 
                 # Restaurar la variable que deseas conservar
                 request.session['email'] = valor_a_conservar
                 request.session['ubicacion'] = ubicacion
-                request.session['timestamp'] = timestamp
             if restaurante.direccion:
                 coordenadas = restaurante.direccion.split('+')
                 ubicacion_restaurante = obtener_direccion(coordenadas[0], coordenadas[1])
@@ -345,7 +340,8 @@ def PickupView(request, item):
                     menu_item.codigo = obtener_ingredientes(menu_item.codigo)
 
                 activo = 'elegidos2' in request.session
-
+                for i in menu:
+                    print(i.img)
                 # Manejo de coordenadas
                 return render(request, 'pickup.html', {
                     'ubicacion_restaurante': ubicacion_restaurante,
@@ -382,14 +378,12 @@ def Reservaciones(request, item):
         if id!=item:
             valor_a_conservar = request.session.get('email')
             ubicacion = request.session.get('ubicacion')
-            timestamp=request.session.get('timestamp')
              #vaciar todas las variables de sesión
             request.session.flush()
 
                 # Restaurar la variable que deseas conservar
             request.session['email'] = valor_a_conservar
             request.session['ubicacion'] = ubicacion
-            request.session['timestamp'] = timestamp
             
         restaurante = Restaurante.objects.filter(id=item).first()
         if not restaurante:

@@ -18,6 +18,7 @@ class PedidoModel(models.Model):
     monto=models.FloatField(default=0)
     is_delivery=models.BooleanField(default=0)
     is_pickup=models.BooleanField(default=0)
+    puntodeventa_active=models.BooleanField(default=0)
     #nro de pedido
     nro=models.AutoField(primary_key=True)
 

@@ -20,10 +20,6 @@ def cuenta(request):
     request.session['restaurante']=restaurante.id
     if (restaurante and restaurante.is_active):
 
-        form=CuentaRestaurante(instance=restaurante)
-
-        for field in form.fields.values():#lee cada valor del form
-            field.widget.attrs['readonly'] = True#readonly,solo mostrar
         if restaurante.direccion!="":
             coordenadas=restaurante.direccion.split('+')
         #Manejo de la fecha de fundación
@@ -34,7 +30,8 @@ def cuenta(request):
 
         return render(request, 'perfil_restaurante.html', {
             'nombre':restaurante.nombre,
-            'form':form,
+            'restaurante':restaurante,
+            'img': restaurante.logo,
             'latitud': str(coordenadas[0]) if restaurante.direccion!="" else False,
             'longitud': str(coordenadas[1]) if restaurante.direccion!="" else False,
             'date': date_fundacion if date_fundacion else False,
@@ -73,6 +70,7 @@ def ModificarCuenta(request):
 
             return render(request, 'editar_perfil.html', {
                 'form': form,
+                'img': restaurante.logo,
                 'latitud': latitud,
                 'longitud': longitud,
                 'date': date_fundacion if date_fundacion else False,
@@ -81,7 +79,7 @@ def ModificarCuenta(request):
 #se modifican los datos del usuario logueado segun lo que envie con el formulario CuentaRestaurante
     elif request.method == 'POST':
         if restaurante and restaurante.is_active:
-            form = CuentaRestaurante(request.POST, instance=restaurante)
+            form = CuentaRestaurante(request.POST,request.FILES, instance=restaurante)
             latitude = request.POST.get('latitude')
             longitude = request.POST.get('longitude')
             fundacion = request.POST.get('fundacion')
@@ -100,6 +98,8 @@ def ModificarCuenta(request):
                         'error': 'Error actualizando datos'
                     })
             else:
+                for msg in form.error_messages:
+                    messages.error(request, form.error_messages[msg])
                 return render(request, 'editar_perfil.html', {
                     'nombre': restaurante.nombre,
                     'form': form,
@@ -142,11 +142,13 @@ def CrearMenu(request):
             except Exception as e:
                 return render(request, 'crear_comida.html', {
                     'form': form,
+                    'code': '0',
                     'error': f'Error al guardar los datos: {str(e)}'
                 })
         else:
             return render(request, 'crear_comida.html', {
                 'form': form,
+                'code': '0',
                 'error': 'Por favor, corrige los errores en el formulario.'
             })
 
@@ -197,7 +199,7 @@ def MostrarMenu(request):
                 ingredient = ingredient[:-1]
             #guardar los datos en la biblioteca texto
             texto.update({item.item: ingredient})
-            print(menus)
+        print(menus)
       #envio de datos al menu.html
         return render(request, 'menu.html', {
             'menus': menus,

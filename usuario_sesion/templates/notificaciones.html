@@ -1,0 +1,74 @@
+{% extends 'nav.html' %}
+{% load custom_filters_user %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MealMate - Notificaciones</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/js/bootstrap.min.js"></script>
+</head>
+<body>
+    <h1>Pedidos realizados</h1>
+    <br>
+    
+    <!-- Tabla de pedidos -->
+   <!-- Tabla de pedidos -->
+<div class="table-responsive-lg">
+    <table class="table table-striped-columns table-hover table-borderless table-primary align-middle">
+        <thead class="table-light">
+            <caption>Pedidos</caption>
+            <tr>
+                <th>Fecha</th>
+                <th>Tipo</th>
+                <th>Estatus</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody class="table-group-divider">
+        {% for i in pedidos %}
+        
+            <tr class="table-primary">
+                <td scope="row">{{ i.fecha }}</td>
+                <td>{% if i.is_delivery %}Delivery{% endif %}
+                    {% if not i.is_delivery %}Pickup{% endif %}</td>
+                <td>
+                    {% if i.status %}Entregado{% endif %}
+                    {% if not i.status %}Sin entregar{% endif %}
+                </td>
+                <td>
+                    </form>
+                    <a href="{% url 'detail' i.nro %}">
+                        <button type="button" class="btn btn-primary">Ver detalles</button>
+                    </a>
+                </td>
+            </tr>
+        
+        {% endfor %}
+        {% for i in reservacion %}
+        
+            <tr class="table-primary">
+                <td scope="row">{{ i.fecha }}</td>
+                <td>Reservacion</td>
+                <td>
+                    No aplica
+                </td>
+                <td>
+                    </form>
+                    <a href="{% url 'detail' i.nro %}">
+                        <button type="button" class="btn btn-primary">Ver detalles</button>
+                    </a>
+                </td>
+            </tr>
+        
+        {% endfor %}
+    </tbody>
+    </table>
+</div>
+</body>
+</html>
+{% endblock %}

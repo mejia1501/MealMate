@@ -40,6 +40,11 @@
           <a class="nav-link" href="{% url 'paypal_pago' item %}">Paypal</a>
         </li>
         {% endif %}
+        {% if punto %}
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'punto_de_venta' item %}">Punto de venta</a>
+        </li>
+        {% endif %}
       </ul>
 
     <h1>Efectivo</h1>

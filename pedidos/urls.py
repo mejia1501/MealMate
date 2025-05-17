@@ -13,6 +13,7 @@ urlpatterns=[
     path('zelle/<str:id>/',views.ZellePagoView,name='zelle_pago'),
     path('paypal/<str:id>/',views.PaypalPagoView,name='paypal_pago'),
     path('efectivo/<str:id>/',views.EfectivoPagoView,name='pago_efectivo'),
+    path('punto_venta/<str:id>/',views.PuntoDeVentaView,name='punto_de_venta'),
     path('reservacion/reserva_cliente/<str:param1>/<int:param2>/<str:param3>/',views.VerReservaView,name='ver_reserva'),
 
     path('pago/success/',views.SuccessView,name='success'),

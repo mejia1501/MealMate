@@ -2,7 +2,7 @@ from django.shortcuts import render,redirect
 from .models import PedidoModel,ZelleModel,PagoMovil,PaypalModel,PagoEfectivo
 from user_r.models import Restaurante,Menu,Ingredientes,Pago,Paypal,Zelle
 from servicios.models import Reservaciones_config,Reservaciones_horario,Pickup_Delivery,Reservacion_cliente
-from usuario_sesion.models import Cliente
+from user_r.models import Cliente
 from usuario_sesion.forms import IniciarSesion
 from .forms import Datos_Form,PagoMovilForm,PagoPaypalForm,PagoZelleForm,EfectivoForm
 from django.utils import timezone
@@ -117,6 +117,8 @@ def DetailsDelivery(request,nro):
             elif paypal:
                 pago=paypal
                 text="Paypal"
+            elif pedido.puntodeventa_active==True:
+                text="Punto de venta"
             elif efectivo:
                 text = "Efectivo"
                 efectivo.billetes = efectivo.billetes.split(',')
@@ -137,7 +139,7 @@ def DetailsDelivery(request,nro):
                 'subtotal': round(total, 2),
                 'iva': round(iva, 2),
                 'bolivares': round(bolivares,2),
-                'pago':pago,
+                'pago':pago if pago else False,
                 'text':text,
                 'diccionario': diccionario,
             })
@@ -235,9 +237,9 @@ def DetailsPickup(request,nro):
             zelle=ZelleModel.objects.filter(pedido=nro).first()
             paypal=PaypalModel.objects.filter(pedido=nro).first()
             efectivo=PagoEfectivo.objects.filter(pedido=nro).first()
-
+            text=""
             diccionario=False
-
+            pago=False
             if pago_nacional:
                 pago=pago_nacional
                 pago.banco = read_banks(pago.banco)
@@ -248,6 +250,8 @@ def DetailsPickup(request,nro):
             elif paypal:
                 pago=paypal
                 text="Paypal"
+            elif pedido.puntodeventa_active==True:
+                text="Punto de venta"
             elif efectivo:
                 text = "Efectivo"
                 efectivo.billetes = efectivo.billetes.split(',')
@@ -260,7 +264,7 @@ def DetailsPickup(request,nro):
                         pago[name[i]] = cantidad  # Asigna la cantidad al nombre correspondiente
 
                 diccionario = True
-
+            print(text)
             return render(request, 'detail_pickup.html',{
                 'pedidos':pedido,
                 'nombre':restaurante.nombre,
@@ -268,10 +272,11 @@ def DetailsPickup(request,nro):
                 'subtotal': round(total, 2),
                 'iva': round(iva, 2),
                 'bolivares': round(bolivares,2),
-                'pago':pago,
+                'pago':pago if pago else False,
                 'text':text,
                 'diccionario': diccionario,
             })
+        
         else:#request("POST")
             status = request.POST.get('status')
             try:
@@ -377,6 +382,7 @@ def Registro_datos_view(request,id):
     
     if request.method == "POST":
         form = Datos_Form(request.POST)
+       
         if form.is_valid():
 
             if 'reservacion' in request.session:
@@ -483,9 +489,11 @@ def Registro_datos_view(request,id):
                         'error': "El restaurante aún no posee medios de pago, lo sentimos"
                     })
         else:
+            print(form.errors)
             return render(request, 'registro_datos.html', {
                 'form': Datos_Form(),
                 'error': "Verifique los datos introducidos",
+                'item': restaurante.id,
                 })
 
 def PagoMovilView(request, id):
@@ -532,6 +540,7 @@ def PagoMovilView(request, id):
             'efectivo': pago_restaurante.efectivo_active if pago_restaurante else False,
             'zelle': zelle.zelle_active if zelle else False,
             'paypal': paypal.paypal_active if paypal else False,
+            'punto': pago_restaurante.punto_active if pago_restaurante.punto_active else False,
             'hora': timezone.localtime(timezone.now()).strftime('%H:%M')
         })
     
@@ -607,7 +616,14 @@ def PagoMovilView(request, id):
                 )
                 nuevo_pago.save() 
                     # Guardar el valor de la variable que deseas conservar
-                delete_session()
+                valor_a_conservar = request.session.get('email')
+                ubicacion = request.session.get('ubicacion')
+                        #vaciar todas las variables de sesión
+                request.session.flush()
+
+                            # Restaurar la variable que deseas conservar
+                request.session['email'] = valor_a_conservar
+                request.session['ubicacion'] = ubicacion
                 return redirect('success')
             except Exception as e:
                 return render(request,'pago_movil.html',{
@@ -659,6 +675,7 @@ def ZellePagoView(request, id):
             'pedidos': bool(request.session.get('type')),
             'pago_movil': pago_nacional.pagomovil_active if pago_nacional.pagomovil_active else False,
             'efectivo': pago_nacional.efectivo_active if pago_nacional.efectivo_active else False,
+            'punto': pago_nacional.punto_active if pago_nacional.punto_active else False,
             'zelle': zelle.zelle_active if zelle else False,
             'paypal': paypal.paypal_active if paypal else False,
             'fecha': datetime.today().strftime('%Y-%m-%d'),
@@ -739,7 +756,14 @@ def ZellePagoView(request, id):
                     precio_dolar=cambio_dolar('1'), 
                 )
                 nuevo_pago.save() 
-                delete_session()
+                valor_a_conservar = request.session.get('email')
+                ubicacion = request.session.get('ubicacion')
+                        #vaciar todas las variables de sesión
+                request.session.flush()
+
+                            # Restaurar la variable que deseas conservar
+                request.session['email'] = valor_a_conservar
+                request.session['ubicacion'] = ubicacion
                 return redirect('success')
             except Exception as e:
                 return render(request,'zelle_pago.html',{
@@ -791,6 +815,7 @@ def PaypalPagoView(request, id):
             'pago_movil': pago_nacional.pagomovil_active if pago_nacional.pagomovil_active else False,
             'efectivo': pago_nacional.efectivo_active if pago_nacional.efectivo_active else False,
             'zelle': zelle.zelle_active if zelle else False,
+            'punto': pago_nacional.punto_active if pago_nacional.punto_active else False,
             'paypal': paypal.paypal_active if paypal else False,
             'fecha': datetime.today().strftime('%Y-%m-%d'),
             'hora': timezone.localtime(timezone.now()).strftime('%H:%M'),
@@ -870,7 +895,14 @@ def PaypalPagoView(request, id):
                 )
                 nuevo_pago.save() 
                     # Guardar el valor de la variable que deseas conservar
-                delete_session()
+                valor_a_conservar = request.session.get('email')
+                ubicacion = request.session.get('ubicacion')
+                        #vaciar todas las variables de sesión
+                request.session.flush()
+
+                            # Restaurar la variable que deseas conservar
+                request.session['email'] = valor_a_conservar
+                request.session['ubicacion'] = ubicacion
                 return redirect('success')
             except Exception as e:
                 return render(request,'paypal_pago.html',{
@@ -914,6 +946,7 @@ def EfectivoPagoView(request,id):
             'pago_movil': pago_nacional.pagomovil_active if pago_nacional.pagomovil_active else False,
             'zelle': zelle.zelle_active if zelle else False,
             'paypal': paypal.paypal_active if paypal else False,
+            'punto': pago_nacional.punto_active if pago_nacional.punto_active else False,
             'total':total,
         })
     elif request.method=="POST":
@@ -1035,9 +1068,17 @@ def EfectivoPagoView(request,id):
                         monto=total,
                         billetes=','.join(map(str, billetes)),
                     )
+                    
                     nuevo_pago.save() 
                         # Guardar el valor de la variable que deseas conservar
-                    delete_session()
+                    valor_a_conservar = request.session.get('email')
+                    ubicacion = request.session.get('ubicacion')
+                            #vaciar todas las variables de sesión
+                    request.session.flush()
+
+                                # Restaurar la variable que deseas conservar
+                    request.session['email'] = valor_a_conservar
+                    request.session['ubicacion'] = ubicacion
                     return redirect('success')
                 
                 except Exception as e:
@@ -1431,6 +1472,115 @@ def VerReservaView(request,param1,param2,param3):
                 'reserva': reserva,
                 'nombre':restaurante.nombre,
             })
+        
+def PuntoDeVentaView(request,id):
+    restaurante=Restaurante.objects.filter(id=id).first()
+    pago_nacional=Pago.objects.filter(restaurante=restaurante.id).first()
+    zelle = Zelle.objects.filter(restaurante=restaurante.id).first()
+    paypal = Paypal.objects.filter(restaurante=restaurante.id).first()
+
+    print('TYPE ',request.session.get('type'))
+    if request.session.get('type')==False:#delivery
+        total=request.session.get('total')
+    elif request.session.get('type')==True:#Pickup
+        total=request.session.get('total2')
+    print('TOTAL ',total)
+
+    if request.method=="GET":
+        return render(request,'punto_venta.html',{
+            'nombre':restaurante.nombre,
+            'item': restaurante.id,
+            'registro': bool(request.session.get('registro')),
+            'type': bool(request.session.get('type')),
+            'pago_movil': pago_nacional.pagomovil_active if pago_nacional.pagomovil_active else False,
+            'zelle': zelle.zelle_active if zelle else False,
+            'paypal': paypal.paypal_active if paypal else False,
+            'total':total,
+            'efectivo':pago_nacional.efectivo_active if pago_nacional.efectivo_active else False,
+        })
+    elif request.method=="POST":
+        true_value = request.POST.get('true')
+
+        # Convierte el valor a un entero y luego a booleano
+        true_value = int(true_value)  # Convierte a entero
+        true_value = bool(true_value)  # Convierte a booleano
+
+        # Ahora puedes usar true_value como un booleano
+        if true_value:
+            try:
+                if request.session.get('elegidos'):
+                    notas=[]
+                    for i in request.session.get('elegidos').split(','):
+                        comentario = request.session.get(f'comentario_{i}', '')
+                        if comentario:
+                            notas.append(comentario)
+                
+                if request.session.get('elegidos2'):
+                    notas2=[]
+                    for i in request.session.get('elegidos2').split(','):
+                        comentario2 = request.session.get(f'2comentario_{i}', '')
+                        if comentario2:
+                            notas2.append(comentario2)
+                    # Al registrar un nuevo pedido
+                    # Crear una nueva instancia de Pedido_Delivery
+                if request.session.get('type')==False:#True=pickup, False=delivery
+                    nuevo_pedido = PedidoModel(
+                            id_nro=restaurante,
+                            nro_items=request.session.get('elegidos'),
+                            fecha=timezone.now(),
+                            notas=';'.join(notas),
+                            cantidades=request.session.get('cantidad'),
+                            nombre=request.session.get('nombre'),
+                            identificacion=request.session.get('identificacion'),
+                            email=request.session.get('mail'),
+                            telefono=request.session.get('telefono'),
+                            ubicacion=request.session.get('ubicacion'),
+                            status=False,
+                            monto=total,
+                            is_delivery=True,
+                            is_pickup=False,
+                        )
+                elif request.session.get('type')==True:#True=pickup, False=delivery
+                    nuevo_pedido = PedidoModel(
+                            id_nro=restaurante,
+                            nro_items=request.session.get('elegidos2'),
+                            fecha=timezone.now(),
+                            notas=';'.join(notas2),
+                            cantidades=request.session.get('cantidad2'),
+                            nombre=request.session.get('nombre'),
+                            identificacion=request.session.get('identificacion'),
+                            email=request.session.get('mail'),
+                            telefono=request.session.get('telefono'),
+                            monto=total,
+                            is_delivery=False,
+                            is_pickup=True,
+                            puntodeventa_active=True,
+                    )
+                    nuevo_pedido.save()  # Esto crea un nuevo registro en la base de datos
+
+                        # Guardar el valor de la variable que deseas conservar
+                valor_a_conservar = request.session.get('email')
+                ubicacion = request.session.get('ubicacion')
+                            #vaciar todas las variables de sesión
+                request.session.flush()
+
+                                # Restaurar la variable que deseas conservar
+                request.session['email'] = valor_a_conservar
+                request.session['ubicacion'] = ubicacion
+                return redirect('success')
+                
+            except Exception as e:
+                return render(request,'punto_venta.html',{
+                            'error': f"ERROR: {e} ",
+                            'nombre':restaurante.nombre,
+                            'registro': bool(request.session.get('registro')),
+                            'type': bool(request.session.get('type')),
+                            'pago_movil': pago_nacional.pagomovil_active if pago_nacional.pagomovil_active else False,
+                            'zelle': zelle.zelle_active if zelle else False,
+                            'paypal': paypal.paypal_active if paypal else False,
+                            'total':total,
+                            'item': restaurante.id,
+                })    
 
 def SuccessView(request):
     if request.method=="GET":
@@ -1479,15 +1629,3 @@ def obtener_direccion(param1,param2):
     geolocator = Nominatim(user_agent="MealMate")
     location = geolocator.reverse(f"{param1}, {param2}")
     return location.address
-
-def delete_session(request):
-    valor_a_conservar = request.session.get('email')
-    ubicacion = request.session.get('ubicacion')
-    timestamp=request.session.get('timestamp')
-             #vaciar todas las variables de sesión
-    request.session.flush()
-
-                # Restaurar la variable que deseas conservar
-    request.session['email'] = valor_a_conservar
-    request.session['ubicacion'] = ubicacion
-    request.session['timestamp'] = timestamp

@@ -29,6 +29,11 @@
           <a class="nav-link" href="{% url 'pago_efectivo' item %}">Efectivo</a>
         </li>
         {% endif %}
+        {% if punto %}
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'punto_de_venta' item %}">Punto de venta</a>
+        </li>
+        {% endif %}
         {% if zelle %}
         <li class="nav-item">
             <a class="nav-link active" aria-current="page" href="#">Zelle</a>
@@ -39,6 +44,7 @@
           <a class="nav-link" href="{% url 'paypal_pago' item %}">Paypal</a>
         </li>
         {% endif %}
+        
       </ul>
 
     <h1>Zelle</h1>

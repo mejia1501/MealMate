@@ -18,13 +18,18 @@
         <a href="{% url 'pedidos' item %}">Volver</a>
     {% endif %}
 <br>
-    <ul class="nav nav-underline">
+     <ul class="nav nav-underline">
         <li class="nav-item">
             <a class="nav-link active" aria-current="page" href="#">Pago Movil</a>
         </li>
         {% if efectivo %}
         <li class="nav-item">
           <a class="nav-link" href="{% url 'pago_efectivo' item %}">Efectivo</a>
+        </li>
+        {% endif %}
+        {% if punto %}
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'punto_de_venta' item %}">Punto de venta</a>
         </li>
         {% endif %}
         {% if zelle %}
@@ -37,8 +42,8 @@
           <a class="nav-link" href="{% url 'paypal_pago' item %}">Paypal</a>
         </li>
         {% endif %}
-      </ul>
-<br>
+        
+      </ul> 
     <h1>Pago movil</h1>
     {% if error %}
     <<div

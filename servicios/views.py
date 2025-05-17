@@ -6,25 +6,48 @@ from usuario_sesion.forms import IniciarSesion
 from user_r.models import Restaurante
 from pedidos.models import PedidoModel
 from principal.views import obtener_direccion
+from user_r.models import Cliente
 from datetime import date,datetime
 from pedidos.models import PedidoModel
 from django.http import JsonResponse
 from django.utils import timezone
 import datetime
+import pytz
+from datetime import datetime,timedelta
+from usuario_sesion.views import check_user_activity
+# Define the timezone
+zona_horaria = pytz.timezone('America/Caracas')
 
 # Create your views here.
 
 def ActivateReserView(request):
     #obtencion de la variable de sesion email
     mail = request.session.get('email')
-    if not mail:
+    if mail:
+        cliente = Cliente.objects.filter(email=mail).first()
+        restaurante = Restaurante.objects.filter(email=mail).first()
+
+        if cliente:
+            if check_user_activity(cliente):
+                valor_a_conservar = request.session.get('ubicacion')
+                request.session.flush()
+                if valor_a_conservar is not None:
+                    request.session['ubicacion'] = valor_a_conservar
+                        
+        elif restaurante:
+            if check_user_activity(restaurante):
+                valor_a_conservar = request.session.get('ubicacion')
+                request.session.flush()
+                if valor_a_conservar is not None:
+                    request.session['ubicacion'] = valor_a_conservar
+    else:
         return render(request, 'usuario_sesion/login.html', {
             'form': IniciarSesion(),
             'error': 'Email o contraseña incorrecto'
         })
     
     
-    elif mail and request.method == 'GET':
+    if mail and request.method == 'GET':
         restaurante=Restaurante.objects.filter(email=mail).first()
         if restaurante and restaurante.is_active:
             # Busca una instancia existente de REservaciones o crea una nueva si no existe
@@ -67,14 +90,30 @@ def ActivateReserView(request):
 def ActivateDelivView(request):
     #obtencion de la variable de sesion email
     mail = request.session.get('email')
-    if not mail:
+    if mail:
+        cliente = Cliente.objects.filter(email=mail).first()
+        restaurante = Restaurante.objects.filter(email=mail).first()
+
+        if cliente:
+            if check_user_activity(cliente):
+                valor_a_conservar = request.session.get('ubicacion')
+                request.session.flush()
+                if valor_a_conservar is not None:
+                    request.session['ubicacion'] = valor_a_conservar
+                        
+        elif restaurante:
+            if check_user_activity(restaurante):
+                valor_a_conservar = request.session.get('ubicacion')
+                request.session.flush()
+                if valor_a_conservar is not None:
+                    request.session['ubicacion'] = valor_a_conservar
+    else:
         return render(request, 'usuario_sesion/login.html', {
             'form': IniciarSesion(),
             'error': 'Email o contraseña incorrecto'
         })
     
-    
-    elif mail and request.method == 'GET':
+    if mail and request.method == 'GET':
         restaurante=Restaurante.objects.filter(email=mail).first()
         if restaurante and restaurante.is_active:
             # Busca una instancia existente de REservaciones o crea una nueva si no existe
@@ -316,7 +355,7 @@ def PickupView(request):
 
             for pedido in pedidos:
                 # Verificar si la fecha del pedido es más antigua que un día
-                if pedido.fecha < fecha_actual - datetime.timedelta(days=1):
+                if pedido.fecha < fecha_actual - timedelta(days=1):
                     pedido.delete()  # Eliminar el pedido de la base de datos
             check = CheckPickForm(initial={
                 'active_pickup': pickup.active_pickup,
@@ -464,7 +503,7 @@ def HorariosMesasViews(request):
             # Obtener las reservaciones ordenadas por fecha
             instance = Reservaciones_horario.objects.filter(restaurante=restaurante.id).order_by('fecha')
             
-            fecha_ayer = timezone.now().date() - datetime.timedelta(days=1)
+            fecha_ayer = timezone.now().date() - timedelta(days=1)
 
             # Si no hay reservas, inicializa una nueva instancia
             if not instance.exists():

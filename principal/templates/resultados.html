@@ -8,18 +8,74 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MealMate</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-
+    <style>
+        .container {
+          margin-top: 75px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        .search-box {
+          position: relative;
+          width: 360px;
+          height: 60px;
+          border-radius: 30px;
+          margin: 0 auto;
+          background: #f5e7bb;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+          display: flex;
+          align-items: center;
+          padding: 0 15px;
+        }
+        .search-icon {
+          color: #25344f;
+          font-size: 1.3em;
+          margin-right: 10px;
+          pointer-events: none;
+        }
+        #search {
+          flex: 1;
+          border: none;
+          outline: none;
+          font-size: 1.2em;
+          color: #25344f;
+          background: transparent;
+        }
+        #search::placeholder {
+          color: #25344f;
+        }
+        .go-icon {
+          color: #25344f;
+          font-size: 1.5em;
+          opacity: 0;
+          transition: opacity 190ms ease-out;
+          pointer-events: none;
+        }
+        .go-icon.go-in {
+          opacity: 1;
+          pointer-events: all;
+          cursor: pointer;
+        }
+      </style>
 </head>
 <body>
       {% if inicio %}
           <h1>{{ inicio }}</h1>
       {% endif %}
       <br>
-      <form method="post">
+      <div class="container">
+        <form method="post" class="search-form">
           {% csrf_token %}
-          {{ busqueda.texto }}
-          <input type="submit" value="Buscar" class="btn btn-primary">
-      </form>
+          <div class="search-box">
+            <i class="fa fa-search search-icon"></i>
+            <!-- Campo de búsqueda renderizado con Django -->
+            {{ busqueda.texto }}
+            <i class="fa fa-arrow-right go-icon"></i>
+            <input type="submit" style="display: none;">
+          </div>
+        </form>
+      </div>
+      <br><br><br>
       
       <br><br>
       {% if items %}
@@ -36,8 +92,9 @@
   
       <div class="card mb-3" style="max-width: 540px;">
           <div class="row g-0">
-              <div class="col-md-4">
-                  <img src="{{ item.imagen_url|default:'default_image.jpg' }}" class="img-fluid rounded-start" alt="{{ item.restaurante_nombre }}">
+              <div class="col-md-4">{% if img %}
+             {% endif %}
+                  <img src="{{ item.img.url }}" class="img-fluid rounded-start" alt="{{ item.restaurante_nombre }}">
               </div>
               <div class="col-md-8">
                   <div class="card-body">

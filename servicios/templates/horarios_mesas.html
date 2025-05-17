@@ -52,28 +52,20 @@
 </head>
 <body>
     <h1>{{ nombre }}</h1>
-
-    
-
-    <a href="{% url 'perfil-restaurante' %}"><button id="tab-1" name="tab" value="datos" >Datos</button></a>
-
-    <a href="{% url 'menu' %}"><button id="tab-2" name="tab" value="menu">Menú</button></a>
-    
-    <a href="{% url 'paypal' %}"><button id="tab-3" name="tab" value="pago">Metodos de pago</button></a>
-    <button id="tab-4" name="tab" disabled value="servicios">Servicios</button>
+    <div class="text-center mb-4">
+        <a href="{% url 'perfil-restaurante' %}" class="btn btn-secondary" id="tab-1" name="tab" value="datos">Datos</a>
+        <a href="{% url 'menu' %}" class="btn btn-secondary" id="tab-2" name="tab" value="menu">Menú</a>
+        <a href="{% url 'paypal' %}" class="btn btn-secondary" id="tab-3" name="tab" value="pago">Métodos de pago</a>
+        <button class="btn btn-secondary" id="tab-4" name="tab" disabled value="servicios">Servicios</button><br>
+        <button class="btn btn-secondary" id="tab-5" name="tab" disabled value="delivery">Delivery</button>
+        <a href="{% url 'activate_p' %}" class="btn btn-secondary" id="tab-6" name="tab" value="pickup">Pickup</a>
+        <a href="{% url 'activate_r' %}" class="btn btn-secondary" id="tab-7" name="tab" value="reservacion">Reservaciones</a>
+    </div>
     <br>
-
-    <a href="{% url 'activate_d' %}"><button id="tab-5" name="tab" value="delivery">Delivery</button></a>
-    <a href="{% url 'activate_p' %}"><button id="tab-6" name="tab" value="pickup">Pickup</button></a>
-    <button id="tab-7" disabled name="tab" value="reservacion">Reservaciones</button>
-
-    <br>
-    <a href="{% url 'mesas' %}">
-        <button id="tab-8" name="tab" value="mesas">Mesas</button>
-    </a>
-    
-    <button id="tab-9" name="tab" disabled value="horario">Horarios</button>
-    <br>
+    <div class="text-center mb-4">
+        <a href="{% url 'mesas' %}" class="btn btn-secondary" id="tab-8" name="tab" value="mesas">Mesas</a>
+        <button class="btn btn-secondary" id="tab-9" name="tab" disabled value="horario">Horarios</button>
+    </div>
     <div class="board">
     <h2>Reservaciones</h2>
     {% if error %}
@@ -94,61 +86,58 @@
     </div>
     <br>
     <h4>Horarios</h4>
-<div class="table-responsive-sm">
-    <table class="table table-light" id="horariosTable">
-        <thead>
-            <tr>
-                <th scope="col">Fecha</th>
-                <th scope="col">Mesa</th>
-                <th scope="col">Horas</th>
-                <th scope="col">Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for fecha, reservas in horarios.items %}
-                {% for reserva in reservas %}
+    
+    <div class="table-responsive-sm">
+        <table class="table table-light table-bordered" id="horariosTable">
+            <thead>
                 <tr>
-                    <td scope="row">
-                        {{ fecha }}
-                    </td>
-                    <td>
-                        {{ reserva.mesa|add_one }}
-                    </td>
-                    <td>
-                        {% for hora, estado in reserva.horas_status %}
-                            {% if estado %}  <!-- True=1=si está ocupado -->
-                                <a href="{% url 'ver_reserva' fecha reserva.mesa hora %}">
-                                    <button class="btn btn-danger" title="Ocupado">{{ hora }}</button>
-                                </a>
-                            {% elif not estado %}  <!-- False=0=no está ocupado -->
-                                <a href="{% url 'modificar_reserva' fecha reserva.mesa hora %}">
-                                    <button class="btn btn-success" title="Modificar">{{ hora }}</button>
-                                </a>
-                            {% endif %}
-                        {% endfor %}
-                    </td>
-                    <td>
-                        {% if reserva.eliminar %}
-                        <form id="formulario2" method="post">
-                            {% csrf_token %}
-                            <input value="{{ reserva.mesa }}" type="hidden" name="mesa">
-                            <input value="{{ fecha }}" type="hidden" name="fecha">
-                            <input type="hidden" name="check" value="{{ check }}">
-                            <button type="submit" class="btn btn-outline-danger" aria-label="Eliminar reserva">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
-                                    <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l                            .5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"></path>
-                                </svg>
-                                Eliminar
-                            </button>
-                        {% endif %}
-                    </form>
-                    </td>
+                    <th scope="col">Fecha</th>
+                    <th scope="col">Mesa</th>
+                    <th scope="col">Horas</th>
+                    <th scope="col">Acciones</th>
                 </tr>
+            </thead>
+            <tbody>
+                {% for fecha, reservas in horarios.items %}
+                    {% for reserva in reservas %}
+                    <tr>
+                        <td scope="row">{{ fecha }}</td>
+                        <td>{{ reserva.mesa|add_one }}</td>
+                        <td>
+                            {% for hora, estado in reserva.horas_status %}
+                                {% if estado %}  <!-- True=1=si está ocupado -->
+                                    <a href="{% url 'ver_reserva' fecha reserva.mesa hora %}">
+                                        <button class="btn btn-danger btn-sm" title="Ocupado">{{ hora }}</button>
+                                    </a>
+                                {% elif not estado %}  <!-- False=0=no está ocupado -->
+                                    <a href="{% url 'modificar_reserva' fecha reserva.mesa hora %}">
+                                        <button class="btn btn-success btn-sm" title="Modificar">{{ hora }}</button>
+                                    </a>
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {% if reserva.eliminar %}
+                            <form id="formulario2" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <input value="{{ reserva.mesa }}" type="hidden" name="mesa">
+                                <input value="{{ fecha }}" type="hidden" name="fecha">
+                                <input type="hidden" name="check" value="{{ check }}">
+                                <button type="submit" class="btn btn-outline-danger btn-sm" aria-label="Eliminar reserva">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
+                                        <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"></path>
+                                    </svg>
+                                    Eliminar
+                                </button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
                 {% endfor %}
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+            </tbody>
+        </table>
+    </div>
    
 <!-- Botón para abrir el modal -->
 <button id="openModalBtn">Añadir</button>

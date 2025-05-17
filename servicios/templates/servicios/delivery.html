@@ -12,18 +12,16 @@
 <body>
     <h1>{{ nombre }}</h1>
 
-    <a href="{% url 'perfil-restaurante' %}"><button id="tab-1" name="tab" value="datos" >Datos</button></a>
-
-    <a href="{% url 'menu' %}"><button id="tab-2" name="tab" value="menu">Menú</button></a>
-    
-    <a href="{% url 'paypal' %}"><button id="tab-3" name="tab" value="pago">Metodos de pago</button></a>
-    <button id="tab-4" name="tab" disabled value="servicios">Servicios</button>
-    <br>
-
-    <button id="tab-5" name="tab" disabled value="delivery">Delivery</button>
-    <a href="{% url 'activate_p' %}"><button id="tab-6" name="tab" value="pickup">Pickup</button></a>
-    <a href="{% url 'activate_r' %}"><button id="tab-7" name="tab" value="reservacion">Reservaciones</button></a>
-
+    <!-- Botones de navegación -->
+    <div class="text-center mb-4">
+        <a href="{% url 'perfil-restaurante' %}" class="btn btn-secondary" id="tab-1" name="tab" value="datos">Datos</a>
+        <a href="{% url 'menu' %}" class="btn btn-secondary" id="tab-2" name="tab" value="menu">Menú</a>
+        <a href="{% url 'paypal' %}" class="btn btn-secondary" id="tab-3" name="tab" value="pago">Métodos de pago</a>
+        <button class="btn btn-secondary" id="tab-4" name="tab" disabled value="servicios">Servicios</button><br>
+        <button class="btn btn-secondary" id="tab-5" name="tab" disabled value="delivery">Delivery</button>
+        <a href="{% url 'activate_p' %}" class="btn btn-secondary" id="tab-6" name="tab" value="pickup">Pickup</a>
+        <a href="{% url 'activate_r' %}" class="btn btn-secondary" id="tab-7" name="tab" value="reservacion">Reservaciones</a>
+    </div>
     <br>
     <h3>Delivery</h3>
 
@@ -102,33 +100,6 @@
     </table>
 </div>
 
-<script>
-    // Función para enviar el formulario de delivery automáticamente
-    function enviarFormulario() {
-        document.getElementById('formulario').submit();
-    }
-
-    // Obtener los campos de tiempo
-    const startTimeInput = document.querySelector('#formulario input[id="id_inicio"]');
-    const endTimeInput = document.querySelector('#formulario input[id="id_cierre"]');
-    const checkbox = document.querySelector('#formulario input[type="checkbox"]');
-
-    // Añadir un evento de cambio a cada campo de tiempo
-    startTimeInput.addEventListener('change', enviarFormulario);
-    endTimeInput.addEventListener('change', enviarFormulario);
-    if (checkbox) {
-        checkbox.addEventListener('change', enviarFormulario);
-    }
-
-    // Evitar el envío del formulario de delivery al enviar el formulario de actualización
-    const updateForms = document.querySelectorAll('.update-form');
-    updateForms.forEach(form => {
-        form.addEventListener('submit', function(event) {
-            event.preventDefault(); // Evita el envío automático del primer formulario
-            this.submit(); // Envía solo el formulario actual
-        });
-    });
-</script>
 </body>
 </html>
 

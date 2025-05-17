@@ -1,5 +1,6 @@
 from django import forms
 import csv
+from django.core.validators import RegexValidator, EmailValidator, MaxValueValidator, MinValueValidator
 
 #Lee los bancos registrados en el archivo csv y devuelve una lista con ellos
 def read_banks():
@@ -15,32 +16,42 @@ def read_banks():
         print(f"Ocurrió un error al leer el archivo CSV: {e}")
     return banks
 
+
+
 class Datos_Form(forms.Form):
-    nombre=forms.CharField(
+    nombre = forms.CharField(
         max_length=40,
         widget=forms.TextInput(),
-        label="<strong>Nombre</strong><br>",
+        label="Nombre",
         required=True,
-
+        validators=[RegexValidator(regex='^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$', message='El nombre solo puede contener letras.')]
     )
-    identificacion=forms.CharField(
+    identificacion = forms.CharField(
         max_length=20,
         widget=forms.TextInput(),
-        label="<strong>Documento de identificacion (C.I. o R.I.F)</strong><br>",
+        label="Documento de identificación (C.I. o R.I.F)",
         required=True,
+        validators=[
+        RegexValidator(
+            regex=r'^(?:[JGV]{1}[-]?\d{1,9}[-]?\d{1}|[0-9]+)$',
+            message='El documento de identificación debe tener un formato válido.'
+        )
+    ]
     )
-    email=forms.EmailField(
-        max_length=20,
+    email = forms.EmailField(
+        max_length=254,  # Cambiado a 254 para cumplir con el estándar de correos electrónicos
         widget=forms.EmailInput(),
-        label="<strong>Email</strong><br>",
+        label="Email",
         required=True,
+        validators=[EmailValidator(message='Por favor, ingresa un correo electrónico válido.')]
     )
-    telefono=forms.CharField(
+    telefono = forms.CharField(
         max_length=11,
         min_length=10,
         widget=forms.TextInput(),
-        label="<strong>Teléfono</strong><br>",
+        label="Teléfono",
         required=True,
+        validators=[RegexValidator(regex='^\d+$', message='El teléfono solo puede contener números.')]
     )
 
 class PagoMovilForm(forms.Form):
@@ -51,63 +62,73 @@ class PagoMovilForm(forms.Form):
         required=True,  
     )
     telefono = forms.CharField(
-        label="Telefono",
-        widget=forms.TextInput(attrs={'maxlength': 11,'minlength':10,}),
+        label="Teléfono",
+        widget=forms.TextInput(attrs={'maxlength': 11, 'minlength': 10}),
         required=True,
+        validators=[RegexValidator(regex='^\d+$', message='El teléfono solo puede contener números.')]
     )
-    ref=forms.IntegerField(
+    ref = forms.IntegerField(
         label="Número de Referencia",
-        widget=forms.TextInput,
-        required=True,   
+        widget=forms.TextInput(),
+        required=True,
+        validators=[MinValueValidator(1, message='La referencia debe ser un número positivo.')]
     )
-    nombre=forms.CharField(
+    nombre = forms.CharField(
         max_length=40,
         widget=forms.TextInput(),
         label="Nombre",
         required=True,
+        validators=[RegexValidator(regex='^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$', message='El nombre solo puede contener letras.')]
     )
 
 class PagoZelleForm(forms.Form):
-    nombre=forms.CharField(
+    nombre = forms.CharField(
         max_length=40,
         widget=forms.TextInput(),
-        label="<strong>Nombre del Titular de la Cuenta:</strong><br>",
+        label="Nombre del Titular de la Cuenta: ",
         required=True,
+        validators=[RegexValidator(regex='^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$', message='El nombre solo puede contener letras.')]
     )
-    email=forms.EmailField(
-        max_length=20,
+    email = forms.EmailField(
+        max_length=254,  # Cambiado a 254 para cumplir con el estándar de correos electrónicos
         widget=forms.EmailInput(),
-        label="<strong>Correo Electrónico Asociado a Zelle</strong><br>",
+        label="Correo Electrónico Asociado a Zelle",
         required=True,
+        validators=[EmailValidator(message='Por favor, ingresa un correo electrónico válido.')]
     )
     telefono = forms.CharField(
         label="Número de Teléfono Asociado a Zelle",
         widget=forms.TextInput(attrs={'maxlength': 11}),
         required=True,
+        validators=[RegexValidator(regex='^\d+$', message='El teléfono solo puede contener números.')]
     )
-    ref=forms.IntegerField(
+    ref = forms.IntegerField(
         label="Referencia de la transacción",
-        widget=forms.TextInput,
-        required=True,   
+        widget=forms.TextInput(),
+        required=True,
+        validators=[MinValueValidator(1, message='La referencia debe ser un número positivo.')]
     )
 
 class PagoPaypalForm(forms.Form):
-    ref=forms.IntegerField(
-        label="Número de Transacción ",
-        widget=forms.TextInput,
-        required=True,   
+    ref = forms.IntegerField(
+        label="Número de Transacción",
+        widget=forms.TextInput(),
+        required=True,
+        validators=[MinValueValidator(1, message='La referencia debe ser un número positivo.')]
     )
-    nombre=forms.CharField(
+    nombre = forms.CharField(
         max_length=40,
         widget=forms.TextInput(),
-        label="Nombre del Titular de la Cuenta ",
+        label="Nombre del Titular de la Cuenta",
         required=True,
+                validators=[RegexValidator(regex='^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$', message='El nombre solo puede contener letras.')]
     )
-    email=forms.EmailField(
-        max_length=20,
+    email = forms.EmailField(
+        max_length=254,  # Cambiado a 254 para cumplir con el estándar de correos electrónicos
         widget=forms.EmailInput(),
-        label="<strong>Correo Electrónico Asociado a PayPal ",
+        label="<strong>Correo Electrónico Asociado a PayPal</strong><br>",
         required=True,
+        validators=[EmailValidator(message='Por favor, ingresa un correo electrónico válido.')]
     )
 
 class EfectivoForm(forms.Form):

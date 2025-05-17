@@ -32,20 +32,15 @@
 <body>
     <h1>{{ nombre }}</h1>
 
-    
-
-    <a href="{% url 'perfil-restaurante' %}"><button id="tab-1" name="tab" value="datos" >Datos</button></a>
-
-    <a href="{% url 'menu' %}"><button id="tab-2" name="tab" value="menu">Menú</button></a>
-    
-    <a href="{% url 'paypal' %}"><button id="tab-3" name="tab" value="pago">Metodos de pago</button></a>
-    <button id="tab-4" name="tab" disabled value="servicios">Servicios</button>
-    <br>
-
-    <a href="{% url 'activate_d' %}"><button id="tab-5" name="tab" value="delivery">Delivery</button></a>
-    <a href="{% url 'activate_p' %}"><button id="tab-6" name="tab" value="pickup">Pickup</button></a>
-    <button id="tab-7" name="tab" disabled value="reservacion">Reservaciones</button>
-
+    <div class="text-center mb-4">
+        <a href="{% url 'perfil-restaurante' %}" class="btn btn-secondary" id="tab-1" name="tab" value="datos">Datos</a>
+        <a href="{% url 'menu' %}" class="btn btn-secondary" id="tab-2" name="tab" value="menu">Menú</a>
+        <a href="{% url 'paypal' %}" class="btn btn-secondary" id="tab-3" name="tab" value="pago">Métodos de pago</a>
+        <button class="btn btn-secondary" id="tab-4" name="tab" disabled value="servicios">Servicios</button><br>
+        <button class="btn btn-secondary" id="tab-5" name="tab" disabled value="delivery">Delivery</button>
+        <a href="{% url 'activate_p' %}" class="btn btn-secondary" id="tab-6" name="tab" value="pickup">Pickup</a>
+        <a href="{% url 'activate_r' %}" class="btn btn-secondary" id="tab-7" name="tab" value="reservacion">Reservaciones</a>
+    </div>
     <br>
 <button id="tab-8" name="tab" disabled value="mesas">Mesas</button>
 

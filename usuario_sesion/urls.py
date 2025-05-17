@@ -9,4 +9,5 @@ urlpatterns=[
     path('perfil/edit/', views.ModificarCuenta, name='editar'),
     path('restaurante/', include('user_r.urls')),
     path('pago/', include('pedidos.urls')),
+    path('detail/<str:nro>/',views.DetailView,name='detail')
 ]

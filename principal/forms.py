@@ -1,31 +1,37 @@
 from django import forms
+from django.core.validators import RegexValidator
+
 class BarraBusqueda(forms.Form):
     texto = forms.CharField(
-        label="Buscar",
         max_length=2750,
         widget=forms.TextInput(attrs={
-            'type': 'search',
-            'class': 'search-bar',
-            'placeholder': 'Comidas, ingredientes, restaurantes...',
-            })
+            'id': 'search',
+            'placeholder': 'Buscar...',  
+            'autocomplete': 'off', 
+        }),
+        validators=[
+            RegexValidator(regex=r'.+', message='Por favor, ingresa un término de búsqueda.')
+        ]
     )
+
 
 class PedidoForm(forms.Form):
-    cantidad=forms.IntegerField(
+    cantidad = forms.IntegerField(
         required=True,
-        max_value=10,
-        min_value=1,
-        label="",
+        label="Cantidad",
         initial=1,
-        widget=forms.NumberInput(attrs={'step': '1'})
+        widget=forms.NumberInput(attrs={'step': '1'}),
+        max_value=10,
     )
-    nota=forms.CharField(
-        label="",
+    nota = forms.CharField(
+        label="Nota",
         initial="Vacio.",
         max_length=30,
-        widget=forms.Textarea()
+        widget=forms.Textarea(attrs={
+            'placeholder': 'Escribe una nota aquí...'
+        }),
+        
     )
-
 class UbicacionForm(forms.Form):
     ubicacion=forms.CharField(
         required=True,

@@ -14,10 +14,18 @@
     {{ error }}
     {% endif %}
     <form  method="POST">
-        
-        {{form}}
         {% csrf_token %}
-        <button>Acceder</button>
+            <div class="mb-3">
+              <label for="exampleInputEmail1" class="form-label"></label>
+              {{ form.email }}
+              <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
+            </div>
+            <div class="mb-3">
+              <label for="exampleInputPassword1" class="form-label"></label>
+              {{ form.password }}
+            </div>
+            <button type="submit" class="btn btn-primary">Acceder</button>
+        
     </form>
     <a href="{% url 'registro_cliente' %}"><b>Aun no tienes una cuenta?</b></a>
 </body>

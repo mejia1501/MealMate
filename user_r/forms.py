@@ -1,6 +1,7 @@
 from django import forms
 from django.forms import ModelForm
 from .models import Restaurante,Ingredientes,Zelle,Paypal,Menu
+from django.core.validators import RegexValidator,EmailValidator
 import csv
 #Lee los bancos registrados en el archivo csv y devuelve una lista con ellos
 def read_banks():
@@ -17,16 +18,41 @@ def read_banks():
     return banks
 
 class CuentaRestaurante(ModelForm):
+    nombre = forms.CharField(
+        widget=forms.TextInput(attrs={
+            'maxlength': 40,  # Ajusta según lo que necesites
+            'minlength': 1,
+            'placeholder': 'Nombre',
+        }),
+        validators=[RegexValidator(regex='^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\-\&\']+$', message='El nombre debe tener un formato válido.')]
+    )
+    
+    rif = forms.CharField(
+        widget=forms.TextInput(attrs={
+            'maxlength': 10,
+            'label': 'RIF',
+            'placeholder': 'RIF',
+        }),
+        validators=[RegexValidator(regex='^\d+$', message='El RIF debe tener un formato válido.')]
+    )
+    
+    telefono = forms.CharField(
+        widget=forms.TextInput(attrs={
+            'maxlength': 11,
+            'minlength': 10,
+            'placeholder': 'Número de teléfono',
+        }),
+        validators=[RegexValidator(regex='^\d+$', message='El teléfono solo puede contener números.')]
+    )
+    
+    logo=forms.ImageField(
+        label='Suba la el logo de su restaurante',
+        widget=forms.ClearableFileInput()
+    )
+
     class Meta:
         model = Restaurante
-        fields = ['nombre','rif','telefono', 'logo',]
-        widgets = { 
-                'telefono': forms.TextInput(attrs={'maxlength': 11,'minlength':11}),
-                'nombre': forms.TextInput(attrs={'maxlength': 20,'minlength': 1,}),
-                'logo': forms.TextInput(attrs={'maxlength': 100}),
-                'rif': forms.TextInput(attrs={'maxlength': 20,'label': 'RIF','minlength':20}),
-                'username': forms.TextInput(attrs={'maxlength': 150,'label': 'RIF',}),
-            }
+        fields = ['nombre', 'rif', 'telefono', 'logo']
         
 #formulario para actualizar los platos y crearlos
 class Items(forms.ModelForm):
@@ -36,6 +62,7 @@ class Items(forms.ModelForm):
         required=True,
         widget=forms.TextInput(attrs={'class': 'form-control','minlength': 1,})
     )
+   
     precio = forms.DecimalField(
         min_value=0.00,
         max_value=1000.00,
@@ -43,7 +70,9 @@ class Items(forms.ModelForm):
         decimal_places=2,
         label="Precio",
         required=True,
-        widget=forms.NumberInput(attrs={'class': 'form-control'})
+        widget=forms.NumberInput(attrs={'class': 'form-control'}),
+        validators=[RegexValidator(regex='^\d+$', message='El numero de telefono solo puede contener números.')]
+
     )
     #hacer una lista tipo select con css con casillas checkbox y con una barra de busqueda
     ingrediente = Ingredientes.objects.all().order_by('ingrediente')
@@ -83,18 +112,33 @@ class PagoForm(forms.Form):
         label="Telefono",
         widget=forms.TextInput(attrs={'maxlength': 11,'minlength': 11,}),
         required=True,  # Consider making this field required
+        validators=[RegexValidator(regex='^\d+$', message='El numero de telefono solo puede contener números.')]
     )
 
 class PaypalForm(ModelForm):
+    nombre = forms.CharField(
+        widget=forms.TextInput(attrs={'maxlength': 20}),
+        validators=[RegexValidator(regex='^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\-\&\']+$', message='El nombre debe tener un formato válido.')]
+    )
+    
+    user = forms.CharField(
+        widget=forms.TextInput(attrs={'maxlength': 20}),
+        validators=[RegexValidator(regex='^[a-zA-Z0-9_.-]+$', message='El usuario solo puede contener letras, números y los caracteres . _ -')]
+    )
+    
+    correo = forms.EmailField(
+        widget=forms.EmailInput(attrs={'maxlength': 254}),
+        validators=[EmailValidator(message='Por favor, ingresa un correo electrónico válido.')]
+    )
+    
+    phone_p = forms.CharField(
+        widget=forms.TextInput(attrs={'maxlength': 11}),
+        validators=[RegexValidator(regex='^\d+$', message='El teléfono solo puede contener números.')]
+    )
+
     class Meta:
         model = Paypal
         fields = ['nombre', 'user', 'correo', 'phone_p']
-        widgets = {
-            'nombre': forms.TextInput(attrs={'maxlength': 20}),
-            'user': forms.TextInput(attrs={'maxlength': 20}),
-            'correo': forms.EmailInput(attrs={'maxlength': 254}),
-            'phone_p': forms.TextInput(attrs={'maxlength': 11}),
-        }
         labels = {
             'nombre': 'Nombre:',
             'user': 'Usuario:',
@@ -103,16 +147,23 @@ class PaypalForm(ModelForm):
         }
 
 class ZelleForm(ModelForm):
+    mail_z = forms.EmailField(
+        widget=forms.EmailInput(attrs={'maxlength': 254}),
+        label='Email:',
+        validators=[EmailValidator(message='Por favor, ingresa un correo electrónico válido.')]
+    )
+    
+    phone_z = forms.CharField(
+        widget=forms.TextInput(attrs={'maxlength': 11, 'minlength': 11}),
+        validators=[RegexValidator(regex='^\d+$', message='El teléfono solo puede contener números.')]
+    )
+
     class Meta:
         model = Zelle
         fields = ['mail_z', 'phone_z']
-        widgets = {
-            'mail_z': forms.EmailInput(attrs={'maxlength': 254}),
-            'phone_z': forms.TextInput(attrs={'maxlength': 11,'minlength': 11,}),
-        }
         labels = {
             'mail_z': 'Email:',
-            'phone_z': 'Telefono:',
+            'phone_z': 'Teléfono:',
         }
 
 class AddIngredients(forms.Form):

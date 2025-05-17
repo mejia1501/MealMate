@@ -6,29 +6,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> Zelle {{ nombre }}</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Zelle {{ nombre }}</title>
 </head>
 <body>
-    <h1>{{ nombre }}</h1>
-    <h3>Zelle</h3>
-    <!-- Formulario para los botones de navegación -->
-    <div>
-        <a href="{% url 'perfil-restaurante' %}"><button id="tab-1" name="tab" value="datos" >Datos</button></a>
-         <a href="{% url 'menu' %}"><button id="tab-2" name="tab" value="menu">Menú</button></a>
-       <button id="tab-3" name="tab" value="pago" disabled>Metodos de pago</button>
-        <a href="{% url 'activate_d' %}"><button id="tab-4" name="tab" value="servicios">Servicios</button></a>
-        
-        <br><br>
-        <a href="{% url 'pago_nacional' %}"><button type="button" id="tab-5" name="tab" value="nacional">Pago Nacional</button></a>
-        <a href="{% url 'paypal' %}"><button type="button" id="tab-6" name="tab"  value="paypal">Paypal</button></a>
-        <button type="button" id="tab-7" name="tab" disabled value="zelle">Zelle</button>
+    <div class="container mt-4">
+        <h1 class="text-center">{{ nombre }}</h1>
+        <h3 class="text-center">Zelle</h3>
+
+        <!-- Mensaje de error -->
+        {% if error %}
+            <div class="alert alert-danger" role="alert">
+                {{ error }}
+            </div>
+        {% endif %}
+
+        <!-- Formulario para los botones de navegación -->
+        <div class="text-center mb-4">
+            <a href="{% url 'perfil-restaurante' %}" class="btn btn-secondary" id="tab-1" name="tab" value="datos">Datos</a>
+            <a href="{% url 'menu' %}" class="btn btn-secondary" id="tab-2" name="tab" value="menu">Menú</a>
+            <button class="btn btn-secondary" id="tab-3" name="tab" value="pago" disabled>Métodos de pago</button>
+            <a href="{% url 'activate_d' %}" class="btn btn-secondary" id="tab-4" name="tab" value="servicios">Servicios</a>
+            <br><br>
+            <a href="{% url 'pago_nacional' %}" class="btn btn-primary" id="tab-5" name="tab" value="nacional">Pago Nacional</a>
+            <a href="{% url 'paypal' %}" class="btn btn-primary" id="tab-6" name="tab" value="paypal">Paypal</a>
+            <button class="btn btn-secondary" id="tab-7" name="tab" disabled value="zelle">Zelle</button>
+        </div>
+
+        <!-- Formulario para editar Zelle -->
+        <form method="POST" class="mt-4"> 
+            {% csrf_token %} 
+            <div class="form-group">
+                {{ form.as_p }} 
+            </div>
+            <button type="submit" class="btn btn-success">Guardar</button> 
+        </form>
     </div>
-    <!-- Formulario para editar zelle -->
-    <form method="POST"> 
-        {% csrf_token %} 
-        {{ form.as_p }} 
-        <button type="submit">Guardar</button> 
-    </form>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
 
