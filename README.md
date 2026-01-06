@@ -9,7 +9,7 @@
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES6-yellow?style=for-the-badge&logo=javascript&logoColor=white)](https://www.javascript.com/)
 [![Leaflet](https://img.shields.io/badge/Leaflet-1.9.4-green?style=for-the-badge&logo=leaflet&logoColor=white)](https://leafletjs.com/)
 
-[🚀 Demo](#) | [📖 Documentación](#documentación-técnica) | [💻 Instalación](#instalación-y-configuración)
+[📖 Documentación](#arquitectura-técnica) | [💻 Instalación](#instalación-y-configuración)
 
 </div>
 
@@ -158,6 +158,11 @@ source venv/bin/activate  # En Windows: venv\Scripts\activate
 
 3. **Instalar dependencias**
 ```bash
+pip install -r requirements.txt
+```
+
+O instalar manualmente:
+```bash
 pip install django==5.1.2
 pip install djangorestframework
 pip install geopy
@@ -195,7 +200,7 @@ Crea un archivo `.env` en la raíz del proyecto:
 
 ```env
 SECRET_KEY=tu-clave-secreta-aqui
-DEBUG=True
+DEBUG=False  # Usar True solo en desarrollo
 ALLOWED_HOSTS=localhost,127.0.0.1
 ```
 
@@ -287,7 +292,6 @@ Desarrollado con ❤️ por el equipo de MealMate
 
 ¿Tienes preguntas o sugerencias? 
 
-- 📧 Email: [Contacto](mailto:contacto@mealmate.com)
 - 🐛 Issues: [GitHub Issues](https://github.com/mejia1501/MealMate/issues)
 - 💬 Discusiones: [GitHub Discussions](https://github.com/mejia1501/MealMate/discussions)
 
